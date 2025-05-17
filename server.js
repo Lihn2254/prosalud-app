@@ -1,30 +1,60 @@
 const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
+const bodyParser = require('body-parser');
+const { Connection, Request } = require('tedious');
 
 const app = express();
-app.use(cors());
+app.use(bodyParser.json());
 
-const uri = 'mongodb+srv://erick:Eva01@testcluster.igbelqr.mongodb.net/?retryWrites=true&w=majority&appName=TestCluster'; // Cambia según tu configuración
-const dbName = 'sample_mflix';
-const PORT = 3000;
+const config = {
+    server: 'erick-server.database.windows.net',
+    authentication: {
+        type: 'default',
+        options: {
+            userName: 'Erick2254',
+            password: 'Evangelion01',
+        }
+    },
+    options: {
+        encrypt: true,
+        database: 'prosalud',
+    }
+};
 
-app.get('/users', async (req, res) => {
-  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-  try {
-    await client.connect();
-    const db = client.db(dbName);
-    const collection = db.collection('users');
-    const users = await collection.find({}, { projection: { _id: 0, name: 1, email: 1 } }).toArray();
-    res.json(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error al obtener usuarios');
-  } finally {
-    await client.close();
-  }
+// Endpoint de login
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    const connection = new Connection(config);
+
+    connection.on('connect', (err) => {
+        if (err) {
+            console.error('Connection failed', err);
+            res.status(500).send('Error de conexión');
+            return;
+        }
+
+        const sql = `SELECT * FROM Users WHERE email = @email AND password = @password`;
+        const request = new Request(sql, (err, rowCount) => {
+            if (err) {
+                console.error('Request error', err);
+                res.status(500).send('Error en la consulta');
+            } else if (rowCount === 0) {
+                res.status(401).send('Credenciales inválidas');
+            } else {
+                res.status(200).send('Inicio de sesión exitoso');
+            }
+            connection.close();
+        });
+
+        request.addParameter('email', TYPES.VarChar, email);
+        request.addParameter('password', TYPES.VarChar, password); // Asegúrate de usar hashes reales en producción
+        connection.execSql(request);
+    });
+
+    connection.connect();
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
