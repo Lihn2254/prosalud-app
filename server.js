@@ -62,7 +62,7 @@ app.post('/login', (req, res) => {
             const token = jwt.sign({
                     ID_Usuario: usuario.ID_Usuario,
                     nombre: usuario.nombre,
-                    segundoNom: usuario.segundoNom,
+                    //segundoNom: usuario.segundoNom,
                     apellidoP: usuario.apellidoP,
                     apellidoM: usuario.apellidoM,
                     email: usuario.email,

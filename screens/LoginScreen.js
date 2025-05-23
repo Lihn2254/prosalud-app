@@ -24,16 +24,16 @@ export default function LoginScreen({ navigation }) {
 
       if (response.status === 200) {
         // Decodificar el token para obtener los atributos
-        const user = jwtDecode(token);
+        const usuario = jwtDecode(token);
 
         // Guardar el token y atributos en AsyncStorage
         await AsyncStorage.setItem('token', token);
-        await AsyncStorage.setItem('userID_Usuario', user.ID_Usuario.toString());
-        await AsyncStorage.setItem('userNombre', user.nombre);
-        await AsyncStorage.setItem('userSegundoNom', user.segundoNom);
-        await AsyncStorage.setItem('userApellidoP', user.apellidoP);
-        await AsyncStorage.setItem('userApellidoM', user.apellidoM);
-        await AsyncStorage.setItem('userEmail', user.email);
+        await AsyncStorage.setItem('userID_Usuario', usuario.ID_Usuario.toString());
+        await AsyncStorage.setItem('userNombre', usuario.nombre);
+        //await AsyncStorage.setItem('userSegundoNom', usuario.segundoNom);
+        await AsyncStorage.setItem('userApellidoP', usuario.apellidoP);
+        await AsyncStorage.setItem('userApellidoM', usuario.apellidoM);
+        await AsyncStorage.setItem('userEmail', usuario.email);
         /*
         await AsyncStorage.setItem('userID_Paciente', user.ID_Paciente.toString());
         await AsyncStorage.setItem('userID_Medico', user.ID_Medico.toString());
@@ -42,15 +42,14 @@ export default function LoginScreen({ navigation }) {
         */
 
         // Navegar a la pantalla principal de paciente
-        if (user.idPaciente !== null) {
+        if (usuario.ID_Paciente !== null) {
           navigation.navigate('HomeScreen');
-        } else if (user.idMedico !== null) {
-          Alert.alert('Inicio de sesión exitoso', 'Médico');
-          //navigation.navigate('HomeScreen');
-        } else if (user.idAdministrador !== null) {
+        } else if (usuario.ID_Medico !== null) {
+          navigation.navigate('HomeMedico');
+        } else if (usuario.ID_Administrador !== null) {
           Alert.alert('Inicio de sesión exitoso', 'Administrador');
           //navigation.navigate('HomeScreen');
-        } else if (user.idAsistente !== null) {
+        } else if (usuario.ID_Asistente !== null) {
           Alert.alert('Inicio de sesión exitoso', 'Asistente');
           //navigation.navigate('HomeScreen');
         } else {

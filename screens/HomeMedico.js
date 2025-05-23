@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.logoContainer}>
                     <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
-                    <Text style={styles.headerText}>Mis citas</Text>
+                    <Text style={styles.headerText}>Próximas consultas</Text>
                 </View>
             </View>
 
@@ -96,7 +96,7 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
-                    <Text style={styles.tabText}>Mi Salud</Text>
+                    <Text style={styles.tabText}>Mi Perfil</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
