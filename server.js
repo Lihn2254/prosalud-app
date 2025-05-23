@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Connection, Request } = require('tedious');
+const { Connection, Request, TYPES } = require('tedious');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(bodyParser.json());
@@ -33,21 +34,50 @@ app.post('/login', (req, res) => {
             return;
         }
 
-        const sql = `SELECT * FROM Users WHERE email = @email AND password = @password`;
+        const sql = 'SELECT * FROM UsuarioTipo WHERE email = @email AND password = @password';
         const request = new Request(sql, (err, rowCount) => {
             if (err) {
                 console.error('Request error', err);
                 res.status(500).send('Error en la consulta');
+                connection.close();
             } else if (rowCount === 0) {
                 res.status(401).send('Credenciales inválidas');
-            } else {
-                res.status(200).send('Inicio de sesión exitoso');
+                connection.close();
             }
-            connection.close();
+        });
+
+        // Escuchar el evento 'row' para construir el objeto usuario
+        request.on('row', columns => {
+            let usuario = {};
+            columns.forEach(column => {
+                usuario[column.metadata.colName] = column.value;
+            });
+
+            usuario.ID_Usuario = parseInt(usuario.ID_Usuario, 10);
+            /*usuario.ID_Paciente = parseInt(usuario.ID_Paciente, 10);
+            usuario.ID_Medico = parseInt(usuario.ID_Medico, 10);
+            usuario.ID_Administrador = parseInt(usuario.ID_Administrador, 10);
+            usuario.ID_Asistente = parseInt(usuario.ID_Asistente, 10);*/
+
+            const token = jwt.sign({
+                    ID_Usuario: usuario.ID_Usuario,
+                    nombre: usuario.nombre,
+                    segundoNom: usuario.segundoNom,
+                    apellidoP: usuario.apellidoP,
+                    apellidoM: usuario.apellidoM,
+                    email: usuario.email,
+                    ID_Paciente: usuario.ID_Paciente,
+                    ID_Medico: usuario.ID_Medico,
+                    ID_Administrador: usuario.ID_Administrador,
+                    ID_Asistente: usuario.ID_Asistente
+                }, 'secretKey', { expiresIn: '24h' });
+
+                res.json({ token });
+                //connection.close();
         });
 
         request.addParameter('email', TYPES.VarChar, email);
-        request.addParameter('password', TYPES.VarChar, password); // Asegúrate de usar hashes reales en producción
+        request.addParameter('password', TYPES.VarChar, password);
         connection.execSql(request);
     });
 

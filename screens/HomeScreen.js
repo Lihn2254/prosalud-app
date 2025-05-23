@@ -3,11 +3,11 @@ import { SafeAreaView, View, Text, Image, StyleSheet, TouchableOpacity, ScrollVi
 import colors from '../styles/colors';
 import {Container} from '../components/container';
 import { LineaHorizontal } from '../components/linea';
-
-
-
+import React, { useContext } from 'react';
+import { UserContext } from '../UserContext';
 
 export default function HomeScreen({ navigation }) {
+  const { usuario, setUsuario } = useContext(UserContext);
   const appointments = [
     {
       id: 1,
@@ -30,7 +30,7 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
-          <Text style={styles.logoText}>ProSalud</Text>
+          <Text style={styles.logoText}>ProSalud. Bienvenido, {usuario?.nombre}</Text>
         </View>
         <TouchableOpacity>
         </TouchableOpacity>
