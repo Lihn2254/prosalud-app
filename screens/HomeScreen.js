@@ -1,4 +1,3 @@
-
 import { SafeAreaView, View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import colors from '../styles/colors';
 import { Container } from '../components/container';
@@ -50,26 +49,6 @@ export default function HomeScreen({ navigation }) {
 
             <LineaHorizontal></LineaHorizontal>
 
-      <ScrollView style={styles.content}>
-        <Container style={styles.appointmentsContainer}>
-          <Text style={styles.sectionTitle}>Mis citas</Text>
-          <LineaHorizontal />
-
-            
-         {
-            //ESTE APPOINTEMNT SIRVE PARA VER COMO FUNCIONA EL CONTAINER Y QUE LOS DATOS SE MUESTREN EN EL SCROLLVIEW
-            
-         /*{
-          
-          appointments.map((appointment) => (
-            <View key={appointment.id} style={styles.appointmentCard}>
-              <View style={styles.appointmentHeader}>
-                <Text style={styles.appointmentDate}>
-                  {appointment.date} | {appointment.time}
-                </Text>
-              </View>
-              <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
-              <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
             <ScrollView style={styles.content}>
                 <Container style={styles.appointmentsContainer}>
                     {
@@ -264,5 +243,5 @@ const styles = StyleSheet.create({
     },
     activeTabText: {
         color: colors.primary,
-    },
+    },
 })
