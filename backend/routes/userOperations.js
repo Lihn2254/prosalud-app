@@ -21,10 +21,8 @@ router.post("/login", (req, res) => {
       if (err) {
         console.error("Request error", err);
         res.status(500).send("Error en la consulta");
-        connection.close();
       } else if (rowCount === 0) {
         res.status(401).send("Credenciales inválidas");
-        connection.close();
       }
     });
 

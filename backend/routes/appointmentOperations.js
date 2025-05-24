@@ -30,7 +30,6 @@ router.post("/getAppointments", (req, res) => {
 
   request.on("requestCompleted", () => {
     res.json(results);
-    connection.close();
   });
 
   connection.execSql(request);
@@ -38,16 +37,33 @@ router.post("/getAppointments", (req, res) => {
 
 router.post("/newAppointment", (req, res) => {
   const { patientId, medicId, assistantId, date } = req.body;
-  const query = `INSERT INTO Cita (ID_Paciente,ID_Medico,ID_Asistente,fecha,estado)`;
+  const query = `INSERT INTO Cita (ID_Paciente,ID_Medico,ID_Asistente,fecha,estado) VALUES (@patientId, @medicId, @assistantId, @date, @status)`;
   const request = new Request(query, (err) => {
     if (err) {
       res
         .status(500)
         .json({ error: "Error al ejecutar la consulta", detail: err });
     } else {
-      res.json(results);
+      res.status(200).json({ message: "Datos insertados correctamente." });
     }
   });
-});
 
+  request.addParameter("patientId", TYPES.Int, patientId);
+  request.addParameter("medicId", TYPES.Int, medicId);
+  request.addParameter("assistantId", assistantId);
+  request.addParameter("date", date);
+  request.addParameter("status", "pendiente");
+
+  request.on("row", (columns) => {
+    const row = {};
+    columns.forEach((column) => {
+      row[column.metadata.colName] = column.value;
+    });
+    results.push(row);
+  });
+
+  request.on("requestCompleted", () => {
+    res.json(results);
+  });
+});
 module.exports = { router };
