@@ -78,7 +78,10 @@ export default function HomeScreen({ navigation }) {
 
                 </Container>
             </ScrollView>
-            <TouchableOpacity style={styles.scheduleButton}>
+            <TouchableOpacity 
+                style={styles.scheduleButton}
+                onPress={() => navigation.navigate("Agendarcita")}
+>
                 <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
             </TouchableOpacity>
 
