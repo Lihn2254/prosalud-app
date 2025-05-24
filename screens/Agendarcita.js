@@ -1,10 +1,20 @@
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from "react-native"
-import colors from "../styles/colors"
-import { Container } from "../components/container"
-import { LineaHorizontal } from "../components/linea"
-import { Calendar } from "react-native-calendars"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import colors from "../styles/colors";
+import { Container } from "../components/container";
+import { LineaHorizontal } from "../components/linea";
+import { Calendar } from "react-native-calendars";
 
 export default function ScheduleAppointmentScreen({ navigation }) {
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
   const specialties = [
     "Medicina General",
     "Cardiología",
@@ -14,7 +24,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "Neurología",
     "Oftalmología",
     "Traumatología",
-  ]
+  ];
 
   const timeSlots = [
     "09:00",
@@ -29,7 +39,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "15:30",
     "16:00",
     "16:30",
-  ]
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -98,8 +108,13 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Seleccionar Fecha</Text>
           <LineaHorizontal />
 
-          <TouchableOpacity style={styles.dateSelector}>
-            <Text style={styles.dateSelectorText}>Seleccionar fecha</Text>
+          <TouchableOpacity
+            style={styles.dateSelector}
+            onPress={() => setCalendarVisible(true)}
+          >
+            <Text style={styles.dateSelectorText}>
+              {selectedDate ? selectedDate : "Seleccionar fecha"}
+            </Text>
             <Text style={styles.dateSelectorIcon}>📅</Text>
           </TouchableOpacity>
         </Container>
@@ -136,9 +151,36 @@ export default function ScheduleAppointmentScreen({ navigation }) {
         <TouchableOpacity style={styles.confirmButton}>
           <Text style={styles.confirmButtonText}>Confirmar Cita</Text>
         </TouchableOpacity>
+        <Modal
+          transparent
+          visible={calendarVisible}
+          animationType="fade"
+          onRequestClose={() => setCalendarVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setCalendarVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={styles.calendarWrapper}>
+                  <Calendar
+                    onDayPress={(day) => {
+                      setSelectedDate(day.dateString);
+                      setCalendarVisible(false);
+                    }}
+                    markedDates={{
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor: colors.primary,
+                      },
+                    }}
+                  />
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -278,4 +320,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-})
+});
