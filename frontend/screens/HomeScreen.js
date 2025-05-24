@@ -67,7 +67,9 @@ export default function HomeScreen({ navigation }) {
 
                                 <View style={styles.appointmentActions}>
                                     <TouchableOpacity style={styles.modifyButton}>
-                                        <Text style={styles.modifyButtonText}>Modificar</Text>
+                                        <Text style={styles.modifyButtonText}
+                                            onPress={() => navigation.navigate("ModificarCita", { appointment })}>
+                                            Modificar</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.detailsButton}>
                                         <Text style={styles.detailsButtonText}>Ver detalles</Text>
