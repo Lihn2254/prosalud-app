@@ -8,6 +8,8 @@ import { useState } from "react"
 export default function ScheduleAppointmentScreen({ navigation }) {
   
   const [selectedSpecialty, setSelectedSpecialty] = useState("")
+  const [selectedTime, setSelectedTime] = useState("")
+
 
 
   const specialties = [
@@ -132,11 +134,26 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <LineaHorizontal />
 
           <View style={styles.timeGrid}>
-            {timeSlots.map((time, index) => (
-              <TouchableOpacity key={index} style={styles.timeSlot}>
-                <Text style={styles.timeText}>{time}</Text>
-              </TouchableOpacity>
-            ))}
+            {timeSlots.map((time, index) => {
+                  const isSelected = selectedTime === time
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.timeSlot,
+                        isSelected && styles.timeSlotSelected
+                      ]}
+                      onPress={() => setSelectedTime(time)}
+                    >
+                      <Text style={[
+                        styles.timeText,
+                        isSelected && styles.timeTextSelected
+                      ]}>
+                        {time}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                })}
           </View>
         </Container>
 
@@ -297,6 +314,17 @@ specialtyTextSelected: {
     marginVertical: 5,
     alignItems: "center",
   },
+
+  timeSlotSelected: {
+  backgroundColor: colors.primary,
+  borderColor: colors.primary,
+},
+
+timeTextSelected: {
+  color: colors.white,
+  fontWeight: "bold",
+},
+
   timeText: {
     fontSize: 14,
     color: colors.text,
