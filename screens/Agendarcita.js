@@ -1,16 +1,24 @@
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from "react-native"
-import colors from "../styles/colors"
-import { Container } from "../components/container"
-import { LineaHorizontal } from "../components/linea"
-import { Calendar } from "react-native-calendars"
-import { useState } from "react"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import colors from "../styles/colors";
+import { Container } from "../components/container";
+import { LineaHorizontal } from "../components/linea";
+import { Calendar } from "react-native-calendars";
+import { useState } from "react";
+import Modal from "react-native-modal";
 
 export default function ScheduleAppointmentScreen({ navigation }) {
-  
-  const [selectedSpecialty, setSelectedSpecialty] = useState("")
-  const [selectedTime, setSelectedTime] = useState("")
-
-
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
 
   const specialties = [
     "Medicina General",
@@ -21,9 +29,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "Neurología",
     "Oftalmología",
     "Traumatología",
-    
-  ] 
-
+  ];
 
   const timeSlots = [
     "09:00",
@@ -38,7 +44,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "15:30",
     "16:00",
     "16:30",
-  ]
+  ];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -95,25 +101,27 @@ export default function ScheduleAppointmentScreen({ navigation }) {
 
           <View style={styles.specialtyGrid}>
             {specialties.map((specialty, index) => {
-                        const isSelected = selectedSpecialty === specialty
-                        return (
-                          <TouchableOpacity
-                            key={index}
-                            style={[
-                              styles.specialtyCard,
-                              isSelected && styles.specialtyCardSelected
-                            ]}
-                            onPress={() => setSelectedSpecialty(specialty)}
-                          >
-                            <Text style={[
-                              styles.specialtyText,
-                              isSelected && styles.specialtyTextSelected
-                            ]}>
-                              {specialty}
-                            </Text>
-                          </TouchableOpacity>
-                      )
-                    })}
+              const isSelected = selectedSpecialty === specialty;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.specialtyCard,
+                    isSelected && styles.specialtyCardSelected,
+                  ]}
+                  onPress={() => setSelectedSpecialty(specialty)}
+                >
+                  <Text
+                    style={[
+                      styles.specialtyText,
+                      isSelected && styles.specialtyTextSelected,
+                    ]}
+                  >
+                    {specialty}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Container>
 
@@ -122,8 +130,13 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Seleccionar Fecha</Text>
           <LineaHorizontal />
 
-          <TouchableOpacity style={styles.dateSelector}>
-            <Text style={styles.dateSelectorText}>Seleccionar fecha</Text>
+          <TouchableOpacity
+            style={styles.dateSelector}
+            onPress={() => setCalendarVisible(true)}
+          >
+            <Text style={styles.dateSelectorText}>
+              {selectedDate ? selectedDate : "Seleccionar fecha"}
+            </Text>
             <Text style={styles.dateSelectorIcon}>📅</Text>
           </TouchableOpacity>
         </Container>
@@ -135,25 +148,27 @@ export default function ScheduleAppointmentScreen({ navigation }) {
 
           <View style={styles.timeGrid}>
             {timeSlots.map((time, index) => {
-                  const isSelected = selectedTime === time
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.timeSlot,
-                        isSelected && styles.timeSlotSelected
-                      ]}
-                      onPress={() => setSelectedTime(time)}
-                    >
-                      <Text style={[
-                        styles.timeText,
-                        isSelected && styles.timeTextSelected
-                      ]}>
-                        {time}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                })}
+              const isSelected = selectedTime === time;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.timeSlot,
+                    isSelected && styles.timeSlotSelected,
+                  ]}
+                  onPress={() => setSelectedTime(time)}
+                >
+                  <Text
+                    style={[
+                      styles.timeText,
+                      isSelected && styles.timeTextSelected,
+                    ]}
+                  >
+                    {time}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Container>
 
@@ -175,12 +190,34 @@ export default function ScheduleAppointmentScreen({ navigation }) {
         <TouchableOpacity style={styles.confirmButton}>
           <Text style={styles.confirmButtonText}>Confirmar Cita</Text>
         </TouchableOpacity>
+        <Modal
+          isVisible={calendarVisible}
+          onBackdropPress={() => setCalendarVisible(false)}
+          backdropColor="black"
+          backdropOpacity={0.3}
+          animationIn="fadeIn"
+          animationOut="fadeOut"
+          style={styles.modalPopover}
+        >
+          <View style={styles.calendarPopover}>
+            <Calendar
+              onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+                setCalendarVisible(false);
+              }}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  selectedColor: colors.primary,
+                },
+              }}
+            />
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
-
-
 
 const styles = StyleSheet.create({
   header: {
@@ -265,21 +302,21 @@ const styles = StyleSheet.create({
   },
 
   specialtyCardSelected: {
-  backgroundColor: colors.primary,
-  borderColor: colors.primary,
-},
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
 
-specialtyTextSelected: {
-  color: colors.white,
-  fontWeight: "bold",
-},
+  specialtyTextSelected: {
+    color: colors.white,
+    fontWeight: "bold",
+  },
 
   specialtyText: {
     fontSize: 14,
     color: colors.text,
     textAlign: "center",
   },
-  
+
   dateSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -316,14 +353,14 @@ specialtyTextSelected: {
   },
 
   timeSlotSelected: {
-  backgroundColor: colors.primary,
-  borderColor: colors.primary,
-},
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
 
-timeTextSelected: {
-  color: colors.white,
-  fontWeight: "bold",
-},
+  timeTextSelected: {
+    color: colors.white,
+    fontWeight: "bold",
+  },
 
   timeText: {
     fontSize: 14,
@@ -342,4 +379,17 @@ timeTextSelected: {
     fontWeight: "bold",
     fontSize: 16,
   },
-})
+  modalPopover: {
+    justifyContent: "flex-start",
+    alignItems: "center",
+    margin: 0,
+    paddingTop: 230, // ajusta esto para que aparezca debajo del botón
+  },
+  calendarPopover: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 10,
+    width: "90%",
+    maxWidth: 400,
+  },
+});
