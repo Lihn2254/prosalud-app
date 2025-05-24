@@ -3,8 +3,13 @@ import colors from "../styles/colors"
 import { Container } from "../components/container"
 import { LineaHorizontal } from "../components/linea"
 import { Calendar } from "react-native-calendars"
+import { useState } from "react"
 
 export default function ScheduleAppointmentScreen({ navigation }) {
+  
+  const [selectedSpecialty, setSelectedSpecialty] = useState("")
+
+
   const specialties = [
     "Medicina General",
     "Cardiología",
@@ -14,7 +19,9 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "Neurología",
     "Oftalmología",
     "Traumatología",
-  ]
+    
+  ] 
+
 
   const timeSlots = [
     "09:00",
@@ -85,11 +92,26 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <LineaHorizontal />
 
           <View style={styles.specialtyGrid}>
-            {specialties.map((specialty, index) => (
-              <TouchableOpacity key={index} style={styles.specialtyCard}>
-                <Text style={styles.specialtyText}>{specialty}</Text>
-              </TouchableOpacity>
-            ))}
+            {specialties.map((specialty, index) => {
+                        const isSelected = selectedSpecialty === specialty
+                        return (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.specialtyCard,
+                              isSelected && styles.specialtyCardSelected
+                            ]}
+                            onPress={() => setSelectedSpecialty(specialty)}
+                          >
+                            <Text style={[
+                              styles.specialtyText,
+                              isSelected && styles.specialtyTextSelected
+                            ]}>
+                              {specialty}
+                            </Text>
+                          </TouchableOpacity>
+                      )
+                    })}
           </View>
         </Container>
 
@@ -140,6 +162,8 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     </SafeAreaView>
   )
 }
+
+
 
 const styles = StyleSheet.create({
   header: {
@@ -222,11 +246,23 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     alignItems: "center",
   },
+
+  specialtyCardSelected: {
+  backgroundColor: colors.primary,
+  borderColor: colors.primary,
+},
+
+specialtyTextSelected: {
+  color: colors.white,
+  fontWeight: "bold",
+},
+
   specialtyText: {
     fontSize: 14,
     color: colors.text,
     textAlign: "center",
   },
+  
   dateSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
