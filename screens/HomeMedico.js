@@ -44,7 +44,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.logoContainer}>
                     <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
-                    <Text style={styles.headerText}>Mis citas</Text>
+                    <Text style={styles.headerText}>Próximas consultas</Text>
                 </View>
             </View>
 
@@ -66,22 +66,22 @@ export default function HomeScreen({ navigation }) {
                                 <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
                                 <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
 
-              <View style={styles.appointmentActions}>
-                <TouchableOpacity style={styles.modifyButton}>
-                  <Text style={styles.modifyButtonText}>Modificar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Ver detalles</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-            
+                                <View style={styles.appointmentActions}>
+                                    <TouchableOpacity style={styles.modifyButton}>
+                                        <Text style={styles.modifyButtonText}>Modificar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.detailsButton}>
+                                        <Text style={styles.detailsButtonText}>Ver detalles</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
 
-          <TouchableOpacity style={styles.scheduleButton}>
-            <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
-          </TouchableOpacity>
-        </Container>
+                </Container>
+            </ScrollView>
+            <TouchableOpacity style={styles.scheduleButton}>
+                <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.contactButton}>
                 <Image source={require("../assets/telefono.png")} style={{ width: 20, height: 20 }} />
@@ -96,7 +96,7 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
-                    <Text style={styles.tabText}>Mi Salud</Text>
+                    <Text style={styles.tabText}>Mi Perfil</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.tabItem}>
                     <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
