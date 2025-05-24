@@ -47,7 +47,8 @@ export default function HomeScreen({ navigation }) {
          {
             //ESTE APPOINTEMNT SIRVE PARA VER COMO FUNCIONA EL CONTAINER Y QUE LOS DATOS SE MUESTREN EN EL SCROLLVIEW
             
-         
+         /*{
+          
           appointments.map((appointment) => (
             <View key={appointment.id} style={styles.appointmentCard}>
               <View style={styles.appointmentHeader}>
@@ -69,8 +70,12 @@ export default function HomeScreen({ navigation }) {
             </View>
           ))}
             
+        }*/
+        }
 
-          <TouchableOpacity style={styles.scheduleButton}>
+          <TouchableOpacity 
+                style={styles.scheduleButton}
+                onPress={() => navigation.navigate("Agendarcita")}>
             <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
           </TouchableOpacity>
         </Container>
