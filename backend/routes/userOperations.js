@@ -1,11 +1,12 @@
 const { Request, TYPES } = require("tedious");
 const jwt = require("jsonwebtoken");
-const connection = require("./db/db.js");
+const getConnection = require("../db/db.js");
 const express = require("express");
 const router = express.Router();
 
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
+  const connection = getConnection();
 
   connection.on("connect", (err) => {
     if (err) {
@@ -53,8 +54,7 @@ router.post("/login", (req, res) => {
           ID_Administrador: usuario.ID_Administrador,
           ID_Asistente: usuario.ID_Asistente,
         },
-        "secretKey",
-        { expiresIn: "24h" }
+        "secretKey"
       );
 
       res.json({ token });

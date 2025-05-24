@@ -1,6 +1,6 @@
 const { Request, TYPES } = require("tedious");
 const jwt = require("jsonwebtoken");
-const connection = require("./db/db.js");
+const connection = require("../db/db.js");
 const express = require("express");
 const router = express.Router();
 

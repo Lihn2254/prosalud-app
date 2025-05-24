@@ -17,6 +17,9 @@ const config = {
   },
 };
 
-const connection = new Connection(config);
+//const connection = new Connection(config);
+function getConnection() {
+  return new Connection(config);
+}
 
-module.exports = { connection };
+module.exports = getConnection;
