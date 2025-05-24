@@ -50,6 +50,26 @@ export default function HomeScreen({ navigation }) {
 
             <LineaHorizontal></LineaHorizontal>
 
+      <ScrollView style={styles.content}>
+        <Container style={styles.appointmentsContainer}>
+          <Text style={styles.sectionTitle}>Mis citas</Text>
+          <LineaHorizontal />
+
+            
+         {
+            //ESTE APPOINTEMNT SIRVE PARA VER COMO FUNCIONA EL CONTAINER Y QUE LOS DATOS SE MUESTREN EN EL SCROLLVIEW
+            
+         /*{
+          
+          appointments.map((appointment) => (
+            <View key={appointment.id} style={styles.appointmentCard}>
+              <View style={styles.appointmentHeader}>
+                <Text style={styles.appointmentDate}>
+                  {appointment.date} | {appointment.time}
+                </Text>
+              </View>
+              <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
+              <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
             <ScrollView style={styles.content}>
                 <Container style={styles.appointmentsContainer}>
                     {
@@ -66,22 +86,22 @@ export default function HomeScreen({ navigation }) {
                                 <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
                                 <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
 
-              <View style={styles.appointmentActions}>
-                <TouchableOpacity style={styles.modifyButton}>
-                  <Text style={styles.modifyButtonText}>Modificar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.detailsButton}>
-                  <Text style={styles.detailsButtonText}>Ver detalles</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-            
+                                <View style={styles.appointmentActions}>
+                                    <TouchableOpacity style={styles.modifyButton}>
+                                        <Text style={styles.modifyButtonText}>Modificar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.detailsButton}>
+                                        <Text style={styles.detailsButtonText}>Ver detalles</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ))}
 
-          <TouchableOpacity style={styles.scheduleButton}>
-            <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
-          </TouchableOpacity>
-        </Container>
+                </Container>
+            </ScrollView>
+            <TouchableOpacity style={styles.scheduleButton}>
+                <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.contactButton}>
                 <Image source={require("../assets/telefono.png")} style={{ width: 20, height: 20 }} />
