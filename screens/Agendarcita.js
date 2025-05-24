@@ -2,6 +2,7 @@ import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Tex
 import colors from "../styles/colors"
 import { Container } from "../components/container"
 import { LineaHorizontal } from "../components/linea"
+import { Calendar } from "react-native-calendars"
 
 export default function ScheduleAppointmentScreen({ navigation }) {
   const specialties = [
