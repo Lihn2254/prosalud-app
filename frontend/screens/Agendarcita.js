@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
 import colors from "../styles/colors";
 import { LineaHorizontal } from "../components/linea";
 import { Calendar } from "react-native-calendars";
 import { useState, useEffect } from "react";
 import Modal from "react-native-modal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ScheduleAppointmentScreen({ navigation }) {
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -25,6 +27,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
   const [consultorioModalVisible, setConsultorioModalVisible] = useState(false);
   const [ubicacionModalVisible, setUbicacionModalVisible] = useState(false);
   const [availableDoctors, setAvailableDoctors] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -43,6 +46,54 @@ export default function ScheduleAppointmentScreen({ navigation }) {
 
     fetchDoctors();
   }, []);
+
+  const handleAddAppointment = async (doctor) => {
+    try {
+      setSelectedDoctor(doctor);
+
+      const patientIdStr = await AsyncStorage.getItem("usuarioPacienteID");
+      const patientId = parseInt(patientIdStr);
+
+      const [startTime] = doctor.timeSlot.split(" - ");
+
+      const datetimeString = `${selectedDate}T${startTime}:00`;
+
+      const datetime = new Date(datetimeString).toISOString();
+
+      console.log(patientId);
+
+      console.log(doctor.id);
+
+      console.log(datetime);
+
+      const response = await fetch(
+        "http://192.168.1.12:3000/appointments/newAppointment",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          //patientId, medicId, assistantId, date
+          body: JSON.stringify({
+            patientId: patientId,
+            medicId: doctor.id,
+            assistantId: 1,
+            date: datetime,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al agendar la cita");
+
+      const result = await response.json();
+      console.log("Cita agendada:", result);
+      navigation.navigate("HomeScreen");
+      Alert.alert("Cita agendada.");
+      // Aquí podrías navegar o mostrar mensaje de éxito si gustas
+    } catch (error) {
+      console.error("Error al agendar:", error);
+    }
+  };
 
   const specialties = [
     "Oftalmología",
@@ -220,7 +271,10 @@ export default function ScheduleAppointmentScreen({ navigation }) {
                   <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
                   <Text style={styles.doctorName}>{doctor.name}</Text>
                 </View>
-                <TouchableOpacity style={styles.addButton}>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => handleAddAppointment(doctor)}
+                >
                   <Text style={styles.addButtonText}>Agregar</Text>
                 </TouchableOpacity>
               </View>
@@ -345,7 +399,10 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-          <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
+          <Image
+            source={require("../assets/usuario.png")}
+            style={{ width: 20, height: 20 }}
+          />
           <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>

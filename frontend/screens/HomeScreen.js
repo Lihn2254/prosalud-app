@@ -1,20 +1,60 @@
-"use client"
-
-import { SafeAreaView, View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, Linking } from "react-native"
-import colors from "../styles/colors"
-import { Container } from "../components/container"
-import { LineaHorizontal } from "../components/linea"
-import { useContext, useState } from "react"
-import { UserContext } from "../UserContext"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  Linking,
+} from "react-native";
+import colors from "../styles/colors";
+import { Container } from "../components/container";
+import { LineaHorizontal } from "../components/linea";
+import { useContext, useState } from "react";
+import { UserContext } from "../UserContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
 
 export default function HomeScreen({ navigation }) {
-  const { usuario, setUsuario } = useContext(UserContext)
-  const [clinicModalVisible, setClinicModalVisible] = useState(false)
-  const [appointmentDetailsVisible, setAppointmentDetailsVisible] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false)
+  const { usuario, setUsuario } = useContext(UserContext);
+  const [clinicModalVisible, setClinicModalVisible] = useState(false);
+  const [appointmentDetailsVisible, setAppointmentDetailsVisible] =
+    useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [appointments, setAppointments] = useState([]);
 
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const pacienteIDString = await AsyncStorage.getItem(
+          "usuarioPacienteID"
+        );
+        const pacienteID = parseInt(pacienteIDString);
+        if (!pacienteID) return;
+
+        const response = await fetch(
+          `http://192.168.1.12:3000/appointments/getAppointments?patientId=${pacienteID}`
+        );
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setAppointments(data);
+        } else {
+          console.warn("Respuesta inesperada:", data);
+        }
+      } catch (error) {
+        console.error("Error al obtener citas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
+  /*
   const appointments = [
     {
       id: 1,
@@ -53,7 +93,7 @@ export default function HomeScreen({ navigation }) {
       specialty: "Dermatología",
     },
   ]
-
+*/
   const clinics = [
     {
       id: 1,
@@ -85,25 +125,25 @@ export default function HomeScreen({ navigation }) {
       phone: "+52 81 5678-9012",
       address: "Av. Colinas de San Miguel #654",
     },
-  ]
+  ];
 
   const handleCallClinic = (phoneNumber) => {
-    const cleanPhone = phoneNumber.replace(/[\s-]/g, "")
-    Linking.openURL(`tel:${cleanPhone}`)
-  }
+    const cleanPhone = phoneNumber.replace(/[\s-]/g, "");
+    Linking.openURL(`tel:${cleanPhone}`);
+  };
 
   const openClinicModal = () => {
-    setClinicModalVisible(true)
-  }
+    setClinicModalVisible(true);
+  };
 
   const openAppointmentDetails = (appointment) => {
-    setSelectedAppointment(appointment)
-    setAppointmentDetailsVisible(true)
-  }
+    setSelectedAppointment(appointment);
+    setAppointmentDetailsVisible(true);
+  };
 
   const handleLogout = async () => {
     try {
-      console.log("Starting logout process...")
+      console.log("Starting logout process...");
 
       // Clear all user data from AsyncStorage
       await AsyncStorage.multiRemove([
@@ -114,12 +154,12 @@ export default function HomeScreen({ navigation }) {
         "usuarioPacienteID",
         "usuarioApellidoM",
         "usuarioEmail",
-      ])
+      ]);
 
-      console.log("AsyncStorage cleared successfully")
+      console.log("AsyncStorage cleared successfully");
 
       // Clear user context if needed
-      setUsuario(null)
+      setUsuario(null);
 
       // Try different navigation methods based on your navigation setup
       try {
@@ -127,44 +167,47 @@ export default function HomeScreen({ navigation }) {
         navigation.reset({
           index: 0,
           routes: [{ name: "LoginScreen" }], // Try "LoginScreen" instead of "Login"
-        })
+        });
       } catch (resetError) {
-        console.log("Reset failed, trying navigate...")
+        console.log("Reset failed, trying navigate...");
         try {
           // Method 2: Try simple navigation
-          navigation.navigate("LoginScreen")
+          navigation.navigate("LoginScreen");
         } catch (navigateError) {
-          console.log("Navigate to LoginScreen failed, trying Login...")
+          console.log("Navigate to LoginScreen failed, trying Login...");
           try {
             // Method 3: Try with "Login" name
-            navigation.navigate("Login")
+            navigation.navigate("Login");
           } catch (loginError) {
-            console.log("All navigation methods failed, trying goBack...")
+            console.log("All navigation methods failed, trying goBack...");
             // Method 4: As last resort, go back to previous screen
-            navigation.goBack()
+            navigation.goBack();
           }
         }
       }
     } catch (error) {
-      console.error("Error during logout:", error)
+      console.error("Error during logout:", error);
       // Even if there's an error, try to navigate away
       try {
-        navigation.goBack()
+        navigation.goBack();
       } catch (navError) {
-        console.error("Navigation also failed:", navError)
+        console.error("Navigation also failed:", navError);
       }
     }
-  }
+  };
 
   const openLogoutModal = () => {
-    setLogoutModalVisible(true)
-  }
+    setLogoutModalVisible(true);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
+          <Image
+            source={require("../assets/ProSalud_logo.jpg")}
+            style={styles.logo}
+          />
           <Text style={styles.headerText}>Mis citas</Text>
         </View>
       </View>
@@ -183,19 +226,28 @@ export default function HomeScreen({ navigation }) {
                     {appointment.date} | {appointment.time}
                   </Text>
                 </View>
-                <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
-                <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
+                <Text style={styles.appointmentLocation}>
+                  {appointment.clinic}
+                </Text>
+                <Text style={styles.appointmentDoctor}>
+                  {appointment.doctor}
+                </Text>
 
                 <View style={styles.appointmentActions}>
                   <TouchableOpacity style={styles.modifyButton}>
                     <Text
                       style={styles.modifyButtonText}
-                      onPress={() => navigation.navigate("ModificarCita", { appointment })}
+                      onPress={() =>
+                        navigation.navigate("ModificarCita", { appointment })
+                      }
                     >
                       Modificar
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.detailsButton} onPress={() => openAppointmentDetails(appointment)}>
+                  <TouchableOpacity
+                    style={styles.detailsButton}
+                    onPress={() => openAppointmentDetails(appointment)}
+                  >
                     <Text style={styles.detailsButtonText}>Ver detalles</Text>
                   </TouchableOpacity>
                 </View>
@@ -205,12 +257,18 @@ export default function HomeScreen({ navigation }) {
         </Container>
       </ScrollView>
 
-      <TouchableOpacity style={styles.scheduleButton} onPress={() => navigation.navigate("Agendarcita")}>
+      <TouchableOpacity
+        style={styles.scheduleButton}
+        onPress={() => navigation.navigate("Agendarcita")}
+      >
         <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.contactButton} onPress={openClinicModal}>
-        <Image source={require("../assets/telefono.png")} style={{ width: 20, height: 20 }} />
+        <Image
+          source={require("../assets/telefono.png")}
+          style={{ width: 20, height: 20 }}
+        />
         <Text style={styles.contactButtonText}>Contactar Clínica</Text>
       </TouchableOpacity>
 
@@ -224,9 +282,14 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.clinicModalContent}>
             <Text style={styles.modalTitle}>Contactar Clínica</Text>
-            <Text style={styles.modalSubtitle}>Selecciona la clínica que deseas contactar</Text>
+            <Text style={styles.modalSubtitle}>
+              Selecciona la clínica que deseas contactar
+            </Text>
 
-            <ScrollView style={styles.clinicsList} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.clinicsList}
+              showsVerticalScrollIndicator={false}
+            >
               {clinics.map((clinic) => (
                 <TouchableOpacity
                   key={clinic.id}
@@ -239,13 +302,19 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.clinicPhone}>{clinic.phone}</Text>
                   </View>
                   <View style={styles.callIcon}>
-                    <Image source={require("../assets/telefono.png")} style={{ width: 24, height: 24 }} />
+                    <Image
+                      source={require("../assets/telefono.png")}
+                      style={{ width: 24, height: 24 }}
+                    />
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
-            <TouchableOpacity style={styles.closeModalButton} onPress={() => setClinicModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeModalButton}
+              onPress={() => setClinicModalVisible(false)}
+            >
               <Text style={styles.closeModalButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -274,27 +343,38 @@ export default function HomeScreen({ navigation }) {
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>🩺 Especialidad:</Text>
-                  <Text style={styles.detailValue}>{selectedAppointment.specialty}</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.specialty}
+                  </Text>
                 </View>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>👨‍⚕️ Doctor:</Text>
-                  <Text style={styles.detailValue}>{selectedAppointment.doctor}</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.doctor}
+                  </Text>
                 </View>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>🏥 Clínica:</Text>
-                  <Text style={styles.detailValue}>{selectedAppointment.clinic}</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.clinic}
+                  </Text>
                 </View>
 
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>📍 Dirección:</Text>
-                  <Text style={styles.detailValue}>{selectedAppointment.clinicAddress}</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.clinicAddress}
+                  </Text>
                 </View>
               </View>
             )}
 
-            <TouchableOpacity style={styles.closeDetailsButton} onPress={() => setAppointmentDetailsVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeDetailsButton}
+              onPress={() => setAppointmentDetailsVisible(false)}
+            >
               <Text style={styles.closeDetailsButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -311,7 +391,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.logoutModalContent}>
             <Text style={styles.logoutModalTitle}>Cerrar Sesión</Text>
-            <Text style={styles.logoutModalText}>¿Estás seguro que quieres cerrar sesión?</Text>
+            <Text style={styles.logoutModalText}>
+              ¿Estás seguro que quieres cerrar sesión?
+            </Text>
 
             <View style={styles.logoutModalButtons}>
               <TouchableOpacity
@@ -324,8 +406,8 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 style={[styles.logoutModalButton, styles.logoutModalYesButton]}
                 onPress={() => {
-                  setLogoutModalVisible(false)
-                  handleLogout()
+                  setLogoutModalVisible(false);
+                  handleLogout();
                 }}
               >
                 <Text style={styles.logoutModalYesText}>Sí</Text>
@@ -337,20 +419,32 @@ export default function HomeScreen({ navigation }) {
 
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem}>
-          <Image source={require("../assets/casa.png")} style={{ width: 20, height: 20 }} />
+          <Image
+            source={require("../assets/casa.png")}
+            style={{ width: 20, height: 20 }}
+          />
           <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate("MiExpediente")}>
-          <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => navigation.navigate("MiExpediente")}
+        >
+          <Image
+            source={require("../assets/usuario.png")}
+            style={{ width: 20, height: 20 }}
+          />
           <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem} onPress={openLogoutModal}>
-          <Image source={require("../assets/puerta.png")} style={{ width: 20, height: 20 }} />
+          <Image
+            source={require("../assets/puerta.png")}
+            style={{ width: 20, height: 20 }}
+          />
           <Text style={styles.tabText}>Salir</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -681,4 +775,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFFFFF",
   },
-})
+});
