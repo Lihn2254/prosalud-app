@@ -348,10 +348,10 @@ export default function ScheduleAppointmentScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
           <Image
-            source={require("../assets/configuracion.png")}
+            source={require("../assets/puerta.png")}
             style={{ width: 20, height: 20 }}
           />
-          <Text style={styles.tabText}>Ajustes</Text>
+          <Text style={styles.tabText}>Salir</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
