@@ -10,6 +10,8 @@ import { UserContext } from "../UserContext"
 export default function HomeScreen({ navigation }) {
   const { usuario, setUsuario } = useContext(UserContext)
   const [clinicModalVisible, setClinicModalVisible] = useState(false)
+  const [appointmentDetailsVisible, setAppointmentDetailsVisible] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
 
   const appointments = [
     {
@@ -17,28 +19,36 @@ export default function HomeScreen({ navigation }) {
       date: "Abril 30, 2025",
       time: "13:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Cardiología",
     },
     {
       id: 2,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Cardiología",
     },
     {
       id: 3,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Medicina General",
     },
     {
       id: 4,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Dermatología",
     },
   ]
 
@@ -84,6 +94,11 @@ export default function HomeScreen({ navigation }) {
     setClinicModalVisible(true)
   }
 
+  const openAppointmentDetails = (appointment) => {
+    setSelectedAppointment(appointment)
+    setAppointmentDetailsVisible(true)
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
@@ -119,7 +134,7 @@ export default function HomeScreen({ navigation }) {
                       Modificar
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.detailsButton}>
+                  <TouchableOpacity style={styles.detailsButton} onPress={() => openAppointmentDetails(appointment)}>
                     <Text style={styles.detailsButtonText}>Ver detalles</Text>
                   </TouchableOpacity>
                 </View>
@@ -171,6 +186,55 @@ export default function HomeScreen({ navigation }) {
 
             <TouchableOpacity style={styles.closeModalButton} onPress={() => setClinicModalVisible(false)}>
               <Text style={styles.closeModalButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Appointment Details Modal */}
+      <Modal
+        visible={appointmentDetailsVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAppointmentDetailsVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.appointmentDetailsModalContent}>
+            <Text style={styles.modalTitle}>Detalles de la Cita</Text>
+
+            {selectedAppointment && (
+              <View style={styles.appointmentDetailsContainer}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>📅 Fecha y Hora:</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.date} | {selectedAppointment.time}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>🩺 Especialidad:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.specialty}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>👨‍⚕️ Doctor:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.doctor}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>🏥 Clínica:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.clinic}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>📍 Dirección:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.clinicAddress}</Text>
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.closeDetailsButton} onPress={() => setAppointmentDetailsVisible(false)}>
+              <Text style={styles.closeDetailsButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -416,5 +480,52 @@ const styles = StyleSheet.create({
     color: "#666666",
     fontSize: 16,
     fontWeight: "500",
+  },
+  appointmentDetailsModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 25,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  appointmentDetailsContainer: {
+    marginVertical: 20,
+  },
+  detailRow: {
+    marginBottom: 15,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: "#333333",
+    lineHeight: 22,
+  },
+  closeDetailsButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  closeDetailsButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 })
