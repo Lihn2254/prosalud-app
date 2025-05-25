@@ -46,7 +46,7 @@ export default function HomeScreen({ navigation }) {
     {
       id: 1,
       name: "Clínica Norte",
-      phone: "+52 81 1234-5678",
+      phone: "+52 6672543782",
       address: "Av. Constitución Norte #123",
     },
     {
