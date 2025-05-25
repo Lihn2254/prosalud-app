@@ -1,59 +1,15 @@
-"use client";
+"use client"
 
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  Linking,
-} from "react-native";
-import colors from "../styles/colors";
-import { Container } from "../components/container";
-import { LineaHorizontal } from "../components/linea";
-import { useContext, useState } from "react";
-import { UserContext } from "../UserContext";
-import { useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView, View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, Linking } from "react-native"
+import colors from "../styles/colors"
+import { Container } from "../components/container"
+import { LineaHorizontal } from "../components/linea"
+import { useContext, useState } from "react"
+import { UserContext } from "../UserContext"
 
 export default function HomeScreen({ navigation }) {
-  const { usuario, setUsuario } = useContext(UserContext);
-  const [clinicModalVisible, setClinicModalVisible] = useState(false);
-  const [appointments, setAppointments] = useState([]);
-
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const pacienteIDString = await AsyncStorage.getItem(
-          "usuarioPacienteID"
-        );
-        const pacienteID = parseInt(pacienteIDString);
-        if (!pacienteID) return;
-
-        const response = await fetch(
-          `http://192.168.1.12:3000/appointments/getAppointments?patientId=${pacienteID}`
-        );
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          setAppointments(data);
-        } else {
-          console.warn("Respuesta inesperada:", data);
-        }
-      } catch (error) {
-        console.error("Error al obtener citas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAppointments();
-  }, []);
-
-  /*
+  const { usuario, setUsuario } = useContext(UserContext)
+  const [clinicModalVisible, setClinicModalVisible] = useState(false)
 
   const appointments = [
     {
@@ -85,12 +41,12 @@ export default function HomeScreen({ navigation }) {
       doctor: "Dra. Ana García López",
     },
   ]
-*/
+
   const clinics = [
     {
       id: 1,
       name: "Clínica Norte",
-      phone: "+52 6672543782",
+      phone: "+52 81 1234-5678",
       address: "Av. Constitución Norte #123",
     },
     {
@@ -117,25 +73,22 @@ export default function HomeScreen({ navigation }) {
       phone: "+52 81 5678-9012",
       address: "Av. Colinas de San Miguel #654",
     },
-  ];
+  ]
 
   const handleCallClinic = (phoneNumber) => {
-    const cleanPhone = phoneNumber.replace(/[\s-]/g, "");
-    Linking.openURL(`tel:${cleanPhone}`);
-  };
+    const cleanPhone = phoneNumber.replace(/[\s-]/g, "")
+    Linking.openURL(`tel:${cleanPhone}`)
+  }
 
   const openClinicModal = () => {
-    setClinicModalVisible(true);
-  };
+    setClinicModalVisible(true)
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/ProSalud_logo.jpg")}
-            style={styles.logo}
-          />
+          <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
           <Text style={styles.headerText}>Mis citas</Text>
         </View>
       </View>
@@ -154,20 +107,14 @@ export default function HomeScreen({ navigation }) {
                     {appointment.date} | {appointment.time}
                   </Text>
                 </View>
-                <Text style={styles.appointmentLocation}>
-                  {appointment.clinic}
-                </Text>
-                <Text style={styles.appointmentDoctor}>
-                  {appointment.doctor}
-                </Text>
+                <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
+                <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
 
                 <View style={styles.appointmentActions}>
                   <TouchableOpacity style={styles.modifyButton}>
                     <Text
                       style={styles.modifyButtonText}
-                      onPress={() =>
-                        navigation.navigate("ModificarCita", { appointment })
-                      }
+                      onPress={() => navigation.navigate("ModificarCita", { appointment })}
                     >
                       Modificar
                     </Text>
@@ -182,18 +129,12 @@ export default function HomeScreen({ navigation }) {
         </Container>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.scheduleButton}
-        onPress={() => navigation.navigate("Agendarcita")}
-      >
+      <TouchableOpacity style={styles.scheduleButton} onPress={() => navigation.navigate("Agendarcita")}>
         <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.contactButton} onPress={openClinicModal}>
-        <Image
-          source={require("../assets/telefono.png")}
-          style={{ width: 20, height: 20 }}
-        />
+        <Image source={require("../assets/telefono.png")} style={{ width: 20, height: 20 }} />
         <Text style={styles.contactButtonText}>Contactar Clínica</Text>
       </TouchableOpacity>
 
@@ -207,14 +148,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.clinicModalContent}>
             <Text style={styles.modalTitle}>Contactar Clínica</Text>
-            <Text style={styles.modalSubtitle}>
-              Selecciona la clínica que deseas contactar
-            </Text>
+            <Text style={styles.modalSubtitle}>Selecciona la clínica que deseas contactar</Text>
 
-            <ScrollView
-              style={styles.clinicsList}
-              showsVerticalScrollIndicator={false}
-            >
+            <ScrollView style={styles.clinicsList} showsVerticalScrollIndicator={false}>
               {clinics.map((clinic) => (
                 <TouchableOpacity
                   key={clinic.id}
@@ -227,19 +163,13 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.clinicPhone}>{clinic.phone}</Text>
                   </View>
                   <View style={styles.callIcon}>
-                    <Image
-                      source={require("../assets/telefono.png")}
-                      style={{ width: 24, height: 24 }}
-                    />
+                    <Image source={require("../assets/telefono.png")} style={{ width: 24, height: 24 }} />
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.closeModalButton}
-              onPress={() => setClinicModalVisible(false)}
-            >
+            <TouchableOpacity style={styles.closeModalButton} onPress={() => setClinicModalVisible(false)}>
               <Text style={styles.closeModalButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -248,29 +178,20 @@ export default function HomeScreen({ navigation }) {
 
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem}>
-          <Image
-            source={require("../assets/casa.png")}
-            style={{ width: 20, height: 20 }}
-          />
+          <Image source={require("../assets/casa.png")} style={{ width: 20, height: 20 }} />
           <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <Image
-            source={require("../assets/usuario.png")}
-            style={{ width: 20, height: 20 }}
-          />
-          <Text style={styles.tabText}>Mi Salud</Text>
+        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate("MiExpediente")}>
+          <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
+          <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-          <Image
-            source={require("../assets/configuracion.png")}
-            style={{ width: 20, height: 20 }}
-          />
+          <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
           <Text style={styles.tabText}>Ajustes</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -496,4 +417,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-});
+})
