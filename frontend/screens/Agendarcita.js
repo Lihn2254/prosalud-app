@@ -45,16 +45,18 @@ export default function ScheduleAppointmentScreen({ navigation }) {
   }, []);
 
   const specialties = [
-    "Medicina General",
-    "Cardiología",
-    "Dermatología",
-    "Ginecología",
-    "Pediatría",
-    "Neurología",
     "Oftalmología",
-    "Traumatología",
+    "Urologia",
+    "Endocrinología",
+    "Psiquiatría",
+    "Ortopedia",
+    "Ginecología y Obstetricia",
+    "Neurología",
+    "Oncología",
+    "Pediatria",
+    "Cardiologia",
+    "Dermatologia",
   ];
-
   const consultorios = [
     "Consultorio 1",
     "Consultorio 2",
