@@ -345,18 +345,15 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-          <Image
-            source={require("../assets/usuario.png")}
-            style={{ width: 20, height: 20 }}
-          />
-          <Text style={styles.tabText}>Mi Salud</Text>
+          <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
+          <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
           <Image
-            source={require("../assets/configuracion.png")}
+            source={require("../assets/puerta.png")}
             style={{ width: 20, height: 20 }}
           />
-          <Text style={styles.tabText}>Ajustes</Text>
+          <Text style={styles.tabText}>Salir</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

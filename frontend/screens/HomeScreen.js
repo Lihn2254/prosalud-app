@@ -6,10 +6,14 @@ import { Container } from "../components/container"
 import { LineaHorizontal } from "../components/linea"
 import { useContext, useState } from "react"
 import { UserContext } from "../UserContext"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 export default function HomeScreen({ navigation }) {
   const { usuario, setUsuario } = useContext(UserContext)
   const [clinicModalVisible, setClinicModalVisible] = useState(false)
+  const [appointmentDetailsVisible, setAppointmentDetailsVisible] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false)
 
   const appointments = [
     {
@@ -17,28 +21,36 @@ export default function HomeScreen({ navigation }) {
       date: "Abril 30, 2025",
       time: "13:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Cardiología",
     },
     {
       id: 2,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Cardiología",
     },
     {
       id: 3,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Medicina General",
     },
     {
       id: 4,
       date: "Abril 30, 2025",
       time: "16:00",
       clinic: "Clínica - Colinas de San Miguel",
+      clinicAddress: "Av. Colinas de San Miguel #654",
       doctor: "Dra. Ana García López",
+      specialty: "Dermatología",
     },
   ]
 
@@ -84,6 +96,70 @@ export default function HomeScreen({ navigation }) {
     setClinicModalVisible(true)
   }
 
+  const openAppointmentDetails = (appointment) => {
+    setSelectedAppointment(appointment)
+    setAppointmentDetailsVisible(true)
+  }
+
+  const handleLogout = async () => {
+    try {
+      console.log("Starting logout process...")
+
+      // Clear all user data from AsyncStorage
+      await AsyncStorage.multiRemove([
+        "token",
+        "usuarioID_Usuario",
+        "usuarioNombre",
+        "usuarioApellidoP",
+        "usuarioPacienteID",
+        "usuarioApellidoM",
+        "usuarioEmail",
+      ])
+
+      console.log("AsyncStorage cleared successfully")
+
+      // Clear user context if needed
+      setUsuario(null)
+
+      // Try different navigation methods based on your navigation setup
+      try {
+        // Method 1: Try navigation.reset first
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "LoginScreen" }], // Try "LoginScreen" instead of "Login"
+        })
+      } catch (resetError) {
+        console.log("Reset failed, trying navigate...")
+        try {
+          // Method 2: Try simple navigation
+          navigation.navigate("LoginScreen")
+        } catch (navigateError) {
+          console.log("Navigate to LoginScreen failed, trying Login...")
+          try {
+            // Method 3: Try with "Login" name
+            navigation.navigate("Login")
+          } catch (loginError) {
+            console.log("All navigation methods failed, trying goBack...")
+            // Method 4: As last resort, go back to previous screen
+            navigation.goBack()
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error during logout:", error)
+      // Even if there's an error, try to navigate away
+      try {
+        navigation.goBack()
+      } catch (navError) {
+        console.error("Navigation also failed:", navError)
+      }
+    }
+  }
+
+  const openLogoutModal = () => {
+    setLogoutModalVisible(true)
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={styles.header}>
@@ -119,7 +195,7 @@ export default function HomeScreen({ navigation }) {
                       Modificar
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.detailsButton}>
+                  <TouchableOpacity style={styles.detailsButton} onPress={() => openAppointmentDetails(appointment)}>
                     <Text style={styles.detailsButtonText}>Ver detalles</Text>
                   </TouchableOpacity>
                 </View>
@@ -176,6 +252,89 @@ export default function HomeScreen({ navigation }) {
         </View>
       </Modal>
 
+      {/* Appointment Details Modal */}
+      <Modal
+        visible={appointmentDetailsVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAppointmentDetailsVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.appointmentDetailsModalContent}>
+            <Text style={styles.modalTitle}>Detalles de la Cita</Text>
+
+            {selectedAppointment && (
+              <View style={styles.appointmentDetailsContainer}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>📅 Fecha y Hora:</Text>
+                  <Text style={styles.detailValue}>
+                    {selectedAppointment.date} | {selectedAppointment.time}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>🩺 Especialidad:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.specialty}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>👨‍⚕️ Doctor:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.doctor}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>🏥 Clínica:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.clinic}</Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>📍 Dirección:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.clinicAddress}</Text>
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.closeDetailsButton} onPress={() => setAppointmentDetailsVisible(false)}>
+              <Text style={styles.closeDetailsButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.logoutModalContent}>
+            <Text style={styles.logoutModalTitle}>Cerrar Sesión</Text>
+            <Text style={styles.logoutModalText}>¿Estás seguro que quieres cerrar sesión?</Text>
+
+            <View style={styles.logoutModalButtons}>
+              <TouchableOpacity
+                style={[styles.logoutModalButton, styles.logoutModalNoButton]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={styles.logoutModalNoText}>No</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.logoutModalButton, styles.logoutModalYesButton]}
+                onPress={() => {
+                  setLogoutModalVisible(false)
+                  handleLogout()
+                }}
+              >
+                <Text style={styles.logoutModalYesText}>Sí</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem}>
           <Image source={require("../assets/casa.png")} style={{ width: 20, height: 20 }} />
@@ -185,9 +344,9 @@ export default function HomeScreen({ navigation }) {
           <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
           <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
-          <Text style={styles.tabText}>Ajustes</Text>
+        <TouchableOpacity style={styles.tabItem} onPress={openLogoutModal}>
+          <Image source={require("../assets/puerta.png")} style={{ width: 20, height: 20 }} />
+          <Text style={styles.tabText}>Salir</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -416,5 +575,110 @@ const styles = StyleSheet.create({
     color: "#666666",
     fontSize: 16,
     fontWeight: "500",
+  },
+  appointmentDetailsModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 25,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  appointmentDetailsContainer: {
+    marginVertical: 20,
+  },
+  detailRow: {
+    marginBottom: 15,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  detailLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: "#333333",
+    lineHeight: 22,
+  },
+  closeDetailsButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  closeDetailsButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  logoutModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 25,
+    width: "85%",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  logoutModalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  logoutModalText: {
+    fontSize: 16,
+    color: "#666666",
+    marginBottom: 25,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  logoutModalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  logoutModalButton: {
+    borderRadius: 10,
+    padding: 15,
+    width: "48%",
+    alignItems: "center",
+  },
+  logoutModalNoButton: {
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  logoutModalYesButton: {
+    backgroundColor: "#E53E3E",
+  },
+  logoutModalNoText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666666",
+  },
+  logoutModalYesText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 })

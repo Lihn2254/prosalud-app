@@ -220,8 +220,8 @@ export default function MiExpedienteScreen({ navigation }) {
           <Text style={[styles.tabText, styles.activeTabText]}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-          <Image source={require("../assets/configuracion.png")} style={styles.tabIcon} />
-          <Text style={styles.tabText}>Ajustes</Text>
+          <Image source={require("../assets/puerta.png")} style={styles.tabIcon} />
+          <Text style={styles.tabText}>Salir</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

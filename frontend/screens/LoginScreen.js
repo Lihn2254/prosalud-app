@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   input: {
-    width: "100%",
+    width: "80%",
     height: 48,
     borderColor: "#ccc",
     borderWidth: 1,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginButton: {
-    width: "100%",
+    width: "80%",
     height: 48,
     backgroundColor: colors.primary,
     borderRadius: 8,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   registerButton: {
-    width: "100%",
+    width: "80%",
     height: 48,
     borderColor: colors.primary,
     borderWidth: 1,
