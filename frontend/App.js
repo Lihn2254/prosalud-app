@@ -19,6 +19,7 @@ import HomeScreen from "./screens/HomeScreen";
 import HomeMedico from "./screens/HomeMedico";
 import Agendarcita from "./screens/Agendarcita";
 import ModificarCita from "./screens/ModificarCita";
+import CancelarCita from "./screens/CancelarCita";
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ export default function App() {
           <Stack.Screen name="HomeMedico" component={HomeMedico} />
           <Stack.Screen name="Agendarcita" component={Agendarcita} />
           <Stack.Screen name="ModificarCita" component={ModificarCita} />
+          <Stack.Screen name="CancelarCita" component={CancelarCita} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

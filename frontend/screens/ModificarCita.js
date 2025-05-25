@@ -18,7 +18,6 @@ export default function ModificarCita({ navigation, route }) {
   const { appointment } = route.params; // Recibe la cita a modificar
 
   // Estados pre-llenados con los datos de la cita
-  const [selectedSpecialty, setSelectedSpecialty] = useState("Medicina General");
   const [selectedTime, setSelectedTime] = useState(appointment.time);
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(appointment.date);
@@ -121,7 +120,7 @@ export default function ModificarCita({ navigation, route }) {
         {/* Botón de Cancelar Cita */}
         <TouchableOpacity 
           style={styles.cancelButton}
-          onPress={() => setShowCancelModal(true)}
+          onPress={() => navigation.navigate('CancelarCita', { appointment })}
         >
           <Text style={styles.confirmButtonText}>Cancelar Cita</Text>
         </TouchableOpacity>
