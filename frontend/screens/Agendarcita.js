@@ -1,24 +1,23 @@
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-} from "react-native";
-import colors from "../styles/colors";
-import { Container } from "../components/container";
-import { LineaHorizontal } from "../components/linea";
-import { Calendar } from "react-native-calendars";
-import { useState } from "react";
-import Modal from "react-native-modal";
+"use client"
+
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Image} from "react-native"
+import colors from "../styles/colors"
+import { LineaHorizontal } from "../components/linea"
+import { Calendar } from "react-native-calendars"
+import { useState } from "react"
+import Modal from "react-native-modal"
 
 export default function ScheduleAppointmentScreen({ navigation }) {
-  const [selectedSpecialty, setSelectedSpecialty] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [calendarVisible, setCalendarVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("")
+  const [selectedConsultorio, setSelectedConsultorio] = useState("")
+  const [selectedUbicacion, setSelectedUbicacion] = useState("")
+  const [calendarVisible, setCalendarVisible] = useState(false)
+  const [selectedDate, setSelectedDate] = useState("")
+
+  // Modal states for dropdowns
+  const [specialtyModalVisible, setSpecialtyModalVisible] = useState(false)
+  const [consultorioModalVisible, setConsultorioModalVisible] = useState(false)
+  const [ubicacionModalVisible, setUbicacionModalVisible] = useState(false)
 
   const specialties = [
     "Medicina General",
@@ -29,22 +28,63 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "Neurología",
     "Oftalmología",
     "Traumatología",
-  ];
+  ]
 
-  const timeSlots = [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-  ];
+  const consultorios = ["Consultorio 1", "Consultorio 2", "Consultorio 3", "Consultorio 4", "Consultorio 5"]
+
+  const ubicaciones = ["Clínica - Colinas de San Miguel", "Clínica - Centro", "Clínica - Norte", "Clínica - Sur"]
+
+  const availableDoctors = [
+    {
+      id: 1,
+      name: "Dra. Ana García López",
+      specialty: "Cardiología",
+      timeSlot: "13:00 - 14:00",
+      available: true,
+    },
+    {
+      id: 2,
+      name: "Dr. Javier Lizárraga Moreno",
+      specialty: "Cardiología",
+      timeSlot: "16:00 - 17:00",
+      available: true,
+    },
+    {
+      id: 3,
+      name: "Dr. Carlos Mendoza",
+      specialty: "Medicina General",
+      timeSlot: "09:00 - 10:00",
+      available: true,
+    },
+    {
+      id: 4,
+      name: "Dra. María Rodríguez",
+      specialty: "Dermatología",
+      timeSlot: "15:00 - 16:00",
+      available: true,
+    },
+  ]
+
+  const filteredDoctors = availableDoctors.filter(
+    (doctor) => !selectedSpecialty || doctor.specialty === selectedSpecialty,
+  )
+
+  const showDoctors = selectedSpecialty && selectedConsultorio && selectedUbicacion && selectedDate
+
+  const selectSpecialty = (specialty) => {
+    setSelectedSpecialty(specialty)
+    setSpecialtyModalVisible(false)
+  }
+
+  const selectConsultorio = (consultorio) => {
+    setSelectedConsultorio(consultorio)
+    setConsultorioModalVisible(false)
+  }
+
+  const selectUbicacion = (ubicacion) => {
+    setSelectedUbicacion(ubicacion)
+    setUbicacionModalVisible(false)
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -52,158 +92,144 @@ export default function ScheduleAppointmentScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← Volver</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Agendar Nueva Cita</Text>
+        <Text style={styles.headerTitle}>Nueva Cita</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <LineaHorizontal />
 
       <ScrollView style={styles.content}>
-        {/* Patient Information */}
-        <Container style={styles.section}>
-          <Text style={styles.sectionTitle}>Información del Paciente</Text>
-          <LineaHorizontal />
+        {/* Specialty Dropdown */}
+        <TouchableOpacity style={styles.dropdown} onPress={() => setSpecialtyModalVisible(true)}>
+          <Text style={[styles.dropdownText, selectedSpecialty && styles.dropdownTextSelected]}>
+            {selectedSpecialty || "Especialidad"}
+          </Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre Completo</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingrese su nombre completo"
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
+        {/* Consultorio Dropdown */}
+        <TouchableOpacity style={styles.dropdown} onPress={() => setConsultorioModalVisible(true)}>
+          <Text style={[styles.dropdownText, selectedConsultorio && styles.dropdownTextSelected]}>
+            {selectedConsultorio || "Consultorio"}
+          </Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Cédula de Identidad</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingrese su cédula"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ingrese su teléfono"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </Container>
-
-        {/* Specialty Selection */}
-        <Container style={styles.section}>
-          <Text style={styles.sectionTitle}>Seleccionar Especialidad</Text>
-          <LineaHorizontal />
-
-          <View style={styles.specialtyGrid}>
-            {specialties.map((specialty, index) => {
-              const isSelected = selectedSpecialty === specialty;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.specialtyCard,
-                    isSelected && styles.specialtyCardSelected,
-                  ]}
-                  onPress={() => setSelectedSpecialty(specialty)}
-                >
-                  <Text
-                    style={[
-                      styles.specialtyText,
-                      isSelected && styles.specialtyTextSelected,
-                    ]}
-                  >
-                    {specialty}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Container>
+        {/* Ubicación Dropdown */}
+        <TouchableOpacity style={styles.dropdown} onPress={() => setUbicacionModalVisible(true)}>
+          <Text style={[styles.dropdownText, selectedUbicacion && styles.dropdownTextSelected]}>
+            {selectedUbicacion || "Ubicación"}
+          </Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
 
         {/* Date Selection */}
-        <Container style={styles.section}>
-          <Text style={styles.sectionTitle}>Seleccionar Fecha</Text>
-          <LineaHorizontal />
-
-          <TouchableOpacity
-            style={styles.dateSelector}
-            onPress={() => setCalendarVisible(true)}
-          >
-            <Text style={styles.dateSelectorText}>
-              {selectedDate ? selectedDate : "Seleccionar fecha"}
-            </Text>
-            <Text style={styles.dateSelectorIcon}>📅</Text>
-          </TouchableOpacity>
-        </Container>
-
-        {/* Time Selection */}
-        <Container style={styles.section}>
-          <Text style={styles.sectionTitle}>Horarios Disponibles</Text>
-          <LineaHorizontal />
-
-          <View style={styles.timeGrid}>
-            {timeSlots.map((time, index) => {
-              const isSelected = selectedTime === time;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.timeSlot,
-                    isSelected && styles.timeSlotSelected,
-                  ]}
-                  onPress={() => setSelectedTime(time)}
-                >
-                  <Text
-                    style={[
-                      styles.timeText,
-                      isSelected && styles.timeTextSelected,
-                    ]}
-                  >
-                    {time}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Container>
-
-        {/* Additional Notes */}
-        <Container style={styles.section}>
-          <Text style={styles.sectionTitle}>Observaciones (Opcional)</Text>
-          <LineaHorizontal />
-
-          <TextInput
-            style={styles.textArea}
-            placeholder="Describa el motivo de su consulta o alguna observación especial"
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            numberOfLines={4}
-          />
-        </Container>
-
-        {/* Confirm Button */}
-        <TouchableOpacity style={styles.confirmButton}>
-          <Text style={styles.confirmButtonText}>Confirmar Cita</Text>
+        <TouchableOpacity style={styles.dateSelector} onPress={() => setCalendarVisible(true)}>
+          <Text style={[styles.dateSelectorText, selectedDate && styles.dateSelectorTextSelected]}>
+            {selectedDate ? selectedDate.split("-").reverse().join("/") : "Seleccionar fecha"}
+          </Text>
+          <Text style={styles.dateSelectorIcon}>📅</Text>
         </TouchableOpacity>
+
+        {/* Available Doctors */}
+        {showDoctors && (
+          <View style={styles.doctorsContainer}>
+            {filteredDoctors.map((doctor) => (
+              <View key={doctor.id} style={styles.doctorCard}>
+                <View style={styles.doctorInfo}>
+                  <Text style={styles.doctorTime}>{doctor.timeSlot}</Text>
+                  <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
+                  <Text style={styles.doctorName}>{doctor.name}</Text>
+                </View>
+                <TouchableOpacity style={styles.addButton}>
+                  <Text style={styles.addButtonText}>Agregar</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Specialty Modal */}
+        <Modal
+          isVisible={specialtyModalVisible}
+          onBackdropPress={() => setSpecialtyModalVisible(false)}
+          style={styles.modalContainer}
+          backdropOpacity={0}
+          hasBackdrop={false}
+          animationIn="fadeIn"
+          animationOut="fadeOut"
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccionar Especialidad</Text>
+            <ScrollView style={styles.optionsList}>
+              {specialties.map((specialty, index) => (
+                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectSpecialty(specialty)}>
+                  <Text style={styles.modalOptionText}>{specialty}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+
+        {/* Consultorio Modal */}
+        <Modal
+          isVisible={consultorioModalVisible}
+          onBackdropPress={() => setConsultorioModalVisible(false)}
+          style={styles.modalContainer}
+          backdropOpacity={0}
+          hasBackdrop={false}
+          animationIn="fadeIn"
+          animationOut="fadeOut"
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccionar Consultorio</Text>
+            <ScrollView style={styles.optionsList}>
+              {consultorios.map((consultorio, index) => (
+                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectConsultorio(consultorio)}>
+                  <Text style={styles.modalOptionText}>{consultorio}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+
+        {/* Ubicación Modal */}
+        <Modal
+          isVisible={ubicacionModalVisible}
+          onBackdropPress={() => setUbicacionModalVisible(false)}
+          style={styles.modalContainer}
+          backdropOpacity={0}
+          hasBackdrop={false}
+          animationIn="fadeIn"
+          animationOut="fadeOut"
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Seleccionar Ubicación</Text>
+            <ScrollView style={styles.optionsList}>
+              {ubicaciones.map((ubicacion, index) => (
+                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectUbicacion(ubicacion)}>
+                  <Text style={styles.modalOptionText}>{ubicacion}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Modal>
+
+        {/* Calendar Modal */}
         <Modal
           isVisible={calendarVisible}
           onBackdropPress={() => setCalendarVisible(false)}
-          backdropColor="black"
-          backdropOpacity={0.3}
+          style={styles.calendarModalContainer}
+          backdropOpacity={0}
+          hasBackdrop={false}
           animationIn="fadeIn"
           animationOut="fadeOut"
-          style={styles.modalPopover}
         >
           <View style={styles.calendarPopover}>
             <Calendar
               onDayPress={(day) => {
-                setSelectedDate(day.dateString);
-                setCalendarVisible(false);
+                setSelectedDate(day.dateString)
+                setCalendarVisible(false)
               }}
               markedDates={{
                 [selectedDate]: {
@@ -211,12 +237,30 @@ export default function ScheduleAppointmentScreen({ navigation }) {
                   selectedColor: colors.primary,
                 },
               }}
+              minDate={new Date().toISOString().split("T")[0]}
             />
           </View>
         </Modal>
       </ScrollView>
+
+      {/* Bottom Navigation */}
+      <LineaHorizontal />
+      <View style={styles.tabBar}>
+        <TouchableOpacity style={styles.tabItem}>
+        <Image source={require("../assets/casa.png")} style={{ width: 20, height: 20 }} />  
+        <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+          <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
+          <Text style={styles.tabText}>Mi Salud</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabItem}>
+        <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
+          <Text style={styles.tabText}>Ajustes</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -240,156 +284,177 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 20,
   },
-  section: {
-    backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.text,
-    marginBottom: 5,
-  },
-  inputGroup: {
-    marginVertical: 10,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.text,
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.white,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.white,
-    height: 100,
-    textAlignVertical: "top",
-  },
-  specialtyGrid: {
+  dropdown: {
     flexDirection: "row",
-    flexWrap: "wrap",
     justifyContent: "space-between",
-    marginTop: 10,
-  },
-  specialtyCard: {
-    width: "48%",
-    backgroundColor: colors.background,
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: "#E0E0E0",
     borderRadius: 8,
     padding: 15,
-    marginVertical: 5,
-    alignItems: "center",
+    marginBottom: 15,
   },
-
-  specialtyCardSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+  dropdownText: {
+    fontSize: 16,
+    color: "#666666",
   },
-
-  specialtyTextSelected: {
-    color: colors.white,
-    fontWeight: "bold",
+  dropdownTextSelected: {
+    color: "#333333",
   },
-
-  specialtyText: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: "center",
+  dropdownArrow: {
+    fontSize: 12,
+    color: "#666666",
   },
-
   dateSelector: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "#E0E0E0",
     borderRadius: 8,
     padding: 15,
-    marginTop: 10,
-    backgroundColor: colors.white,
+    marginBottom: 20,
   },
   dateSelectorText: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: "#666666",
+  },
+  dateSelectorTextSelected: {
+    color: "#333333",
   },
   dateSelectorIcon: {
     fontSize: 20,
   },
-  timeGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+  doctorsContainer: {
     marginTop: 10,
   },
-  timeSlot: {
-    width: "30%",
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    marginVertical: 5,
-    alignItems: "center",
-  },
-
-  timeSlotSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-
-  timeTextSelected: {
-    color: colors.white,
-    fontWeight: "bold",
-  },
-
-  timeText: {
-    fontSize: 14,
-    color: colors.text,
-    fontWeight: "500",
-  },
-  confirmButton: {
-    backgroundColor: colors.primary,
+  doctorCard: {
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     padding: 15,
-    alignItems: "center",
-    marginVertical: 20,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
-  confirmButtonText: {
-    color: colors.white,
-    fontWeight: "bold",
+  doctorInfo: {
+    marginBottom: 10,
+  },
+  doctorTime: {
     fontSize: 16,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 5,
   },
-  modalPopover: {
-    justifyContent: "flex-start",
+  doctorSpecialty: {
+    fontSize: 14,
+    color: "#666666",
+    marginBottom: 2,
+  },
+  doctorName: {
+    fontSize: 14,
+    color: "#666666",
+  },
+  addButton: {
+    backgroundColor: "#333",
+    borderRadius: 6,
+    padding: 10,
+    alignItems: "center",
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  modalContainer: {
+    justifyContent: "center",
     alignItems: "center",
     margin: 0,
-    paddingTop: 230, // ajusta esto para que aparezca debajo del botón
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 20,
+    width: "80%",
+    maxHeight: "60%",
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    opacity: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 15,
+    textAlign: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  optionsList: {
+    maxHeight: 300,
+    backgroundColor: "#FFFFFF",
+  },
+  modalOption: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: "#333333",
+    backgroundColor: "transparent",
+  },
+  calendarModalContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 0,
   },
   calendarPopover: {
-    backgroundColor: colors.white,
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     padding: 10,
     width: "90%",
     maxWidth: 400,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    opacity: 1,
   },
-});
+  tabBar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingVertical: 10,
+    backgroundColor: "#FFFFFF",
+  },
+  tabItem: {
+    alignItems: "center",
+  },
+  tabText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: "#333333",
+  },
+  activeTabText: {
+    color: colors.primary,
+  },
+})
