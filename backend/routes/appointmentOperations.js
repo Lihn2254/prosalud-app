@@ -123,6 +123,7 @@ router.post("/newAppointment", (req, res) => {
   connection.connect();
 });
 
+
 router.post("/cancelAppointment", (req, res) => {
   const { appointmentId } = req.body;
   
