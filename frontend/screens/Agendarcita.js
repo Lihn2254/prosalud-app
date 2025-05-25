@@ -1,23 +1,48 @@
-"use client"
+"use client";
 
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Image} from "react-native"
-import colors from "../styles/colors"
-import { LineaHorizontal } from "../components/linea"
-import { Calendar } from "react-native-calendars"
-import { useState } from "react"
-import Modal from "react-native-modal"
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from "react-native";
+import colors from "../styles/colors";
+import { LineaHorizontal } from "../components/linea";
+import { Calendar } from "react-native-calendars";
+import { useState, useEffect } from "react";
+import Modal from "react-native-modal";
 
 export default function ScheduleAppointmentScreen({ navigation }) {
-  const [selectedSpecialty, setSelectedSpecialty] = useState("")
-  const [selectedConsultorio, setSelectedConsultorio] = useState("")
-  const [selectedUbicacion, setSelectedUbicacion] = useState("")
-  const [calendarVisible, setCalendarVisible] = useState(false)
-  const [selectedDate, setSelectedDate] = useState("")
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [selectedConsultorio, setSelectedConsultorio] = useState("");
+  const [selectedUbicacion, setSelectedUbicacion] = useState("");
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [specialtyModalVisible, setSpecialtyModalVisible] = useState(false);
+  const [consultorioModalVisible, setConsultorioModalVisible] = useState(false);
+  const [ubicacionModalVisible, setUbicacionModalVisible] = useState(false);
+  const [availableDoctors, setAvailableDoctors] = useState([]);
 
-  // Modal states for dropdowns
-  const [specialtyModalVisible, setSpecialtyModalVisible] = useState(false)
-  const [consultorioModalVisible, setConsultorioModalVisible] = useState(false)
-  const [ubicacionModalVisible, setUbicacionModalVisible] = useState(false)
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await fetch(
+          "http://192.168.1.12:3000/medical/getDoctors"
+        );
+        if (!response.ok) throw new Error("Error al obtener los doctores");
+
+        const data = await response.json();
+        setAvailableDoctors(data);
+      } catch (error) {
+        console.error("Error en fetch:", error);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   const specialties = [
     "Medicina General",
@@ -28,11 +53,24 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     "Neurología",
     "Oftalmología",
     "Traumatología",
-  ]
+  ];
 
-  const consultorios = ["Consultorio 1", "Consultorio 2", "Consultorio 3", "Consultorio 4", "Consultorio 5"]
+  const consultorios = [
+    "Consultorio 1",
+    "Consultorio 2",
+    "Consultorio 3",
+    "Consultorio 4",
+    "Consultorio 5",
+  ];
 
-  const ubicaciones = ["Clínica - Colinas de San Miguel", "Clínica - Centro", "Clínica - Norte", "Clínica - Sur"]
+  const ubicaciones = [
+    "Clínica - Colinas de San Miguel",
+    "Clínica - Centro",
+    "Clínica - Norte",
+    "Clínica - Sur",
+  ];
+
+  /*
 
   const availableDoctors = [
     {
@@ -64,27 +102,32 @@ export default function ScheduleAppointmentScreen({ navigation }) {
       available: true,
     },
   ]
+    */
 
   const filteredDoctors = availableDoctors.filter(
-    (doctor) => !selectedSpecialty || doctor.specialty === selectedSpecialty,
-  )
+    (doctor) => !selectedSpecialty || doctor.specialty === selectedSpecialty
+  );
 
-  const showDoctors = selectedSpecialty && selectedConsultorio && selectedUbicacion && selectedDate
+  const showDoctors =
+    selectedSpecialty &&
+    selectedConsultorio &&
+    selectedUbicacion &&
+    selectedDate;
 
   const selectSpecialty = (specialty) => {
-    setSelectedSpecialty(specialty)
-    setSpecialtyModalVisible(false)
-  }
+    setSelectedSpecialty(specialty);
+    setSpecialtyModalVisible(false);
+  };
 
   const selectConsultorio = (consultorio) => {
-    setSelectedConsultorio(consultorio)
-    setConsultorioModalVisible(false)
-  }
+    setSelectedConsultorio(consultorio);
+    setConsultorioModalVisible(false);
+  };
 
   const selectUbicacion = (ubicacion) => {
-    setSelectedUbicacion(ubicacion)
-    setUbicacionModalVisible(false)
-  }
+    setSelectedUbicacion(ubicacion);
+    setUbicacionModalVisible(false);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -100,33 +143,67 @@ export default function ScheduleAppointmentScreen({ navigation }) {
 
       <ScrollView style={styles.content}>
         {/* Specialty Dropdown */}
-        <TouchableOpacity style={styles.dropdown} onPress={() => setSpecialtyModalVisible(true)}>
-          <Text style={[styles.dropdownText, selectedSpecialty && styles.dropdownTextSelected]}>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setSpecialtyModalVisible(true)}
+        >
+          <Text
+            style={[
+              styles.dropdownText,
+              selectedSpecialty && styles.dropdownTextSelected,
+            ]}
+          >
             {selectedSpecialty || "Especialidad"}
           </Text>
           <Text style={styles.dropdownArrow}>▼</Text>
         </TouchableOpacity>
 
         {/* Consultorio Dropdown */}
-        <TouchableOpacity style={styles.dropdown} onPress={() => setConsultorioModalVisible(true)}>
-          <Text style={[styles.dropdownText, selectedConsultorio && styles.dropdownTextSelected]}>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setConsultorioModalVisible(true)}
+        >
+          <Text
+            style={[
+              styles.dropdownText,
+              selectedConsultorio && styles.dropdownTextSelected,
+            ]}
+          >
             {selectedConsultorio || "Consultorio"}
           </Text>
           <Text style={styles.dropdownArrow}>▼</Text>
         </TouchableOpacity>
 
         {/* Ubicación Dropdown */}
-        <TouchableOpacity style={styles.dropdown} onPress={() => setUbicacionModalVisible(true)}>
-          <Text style={[styles.dropdownText, selectedUbicacion && styles.dropdownTextSelected]}>
+        <TouchableOpacity
+          style={styles.dropdown}
+          onPress={() => setUbicacionModalVisible(true)}
+        >
+          <Text
+            style={[
+              styles.dropdownText,
+              selectedUbicacion && styles.dropdownTextSelected,
+            ]}
+          >
             {selectedUbicacion || "Ubicación"}
           </Text>
           <Text style={styles.dropdownArrow}>▼</Text>
         </TouchableOpacity>
 
         {/* Date Selection */}
-        <TouchableOpacity style={styles.dateSelector} onPress={() => setCalendarVisible(true)}>
-          <Text style={[styles.dateSelectorText, selectedDate && styles.dateSelectorTextSelected]}>
-            {selectedDate ? selectedDate.split("-").reverse().join("/") : "Seleccionar fecha"}
+        <TouchableOpacity
+          style={styles.dateSelector}
+          onPress={() => setCalendarVisible(true)}
+        >
+          <Text
+            style={[
+              styles.dateSelectorText,
+              selectedDate && styles.dateSelectorTextSelected,
+            ]}
+          >
+            {selectedDate
+              ? selectedDate.split("-").reverse().join("/")
+              : "Seleccionar fecha"}
           </Text>
           <Text style={styles.dateSelectorIcon}>📅</Text>
         </TouchableOpacity>
@@ -163,7 +240,11 @@ export default function ScheduleAppointmentScreen({ navigation }) {
             <Text style={styles.modalTitle}>Seleccionar Especialidad</Text>
             <ScrollView style={styles.optionsList}>
               {specialties.map((specialty, index) => (
-                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectSpecialty(specialty)}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalOption}
+                  onPress={() => selectSpecialty(specialty)}
+                >
                   <Text style={styles.modalOptionText}>{specialty}</Text>
                 </TouchableOpacity>
               ))}
@@ -185,7 +266,11 @@ export default function ScheduleAppointmentScreen({ navigation }) {
             <Text style={styles.modalTitle}>Seleccionar Consultorio</Text>
             <ScrollView style={styles.optionsList}>
               {consultorios.map((consultorio, index) => (
-                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectConsultorio(consultorio)}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalOption}
+                  onPress={() => selectConsultorio(consultorio)}
+                >
                   <Text style={styles.modalOptionText}>{consultorio}</Text>
                 </TouchableOpacity>
               ))}
@@ -207,7 +292,11 @@ export default function ScheduleAppointmentScreen({ navigation }) {
             <Text style={styles.modalTitle}>Seleccionar Ubicación</Text>
             <ScrollView style={styles.optionsList}>
               {ubicaciones.map((ubicacion, index) => (
-                <TouchableOpacity key={index} style={styles.modalOption} onPress={() => selectUbicacion(ubicacion)}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.modalOption}
+                  onPress={() => selectUbicacion(ubicacion)}
+                >
                   <Text style={styles.modalOptionText}>{ubicacion}</Text>
                 </TouchableOpacity>
               ))}
@@ -228,8 +317,8 @@ export default function ScheduleAppointmentScreen({ navigation }) {
           <View style={styles.calendarPopover}>
             <Calendar
               onDayPress={(day) => {
-                setSelectedDate(day.dateString)
-                setCalendarVisible(false)
+                setSelectedDate(day.dateString);
+                setCalendarVisible(false);
               }}
               markedDates={{
                 [selectedDate]: {
@@ -247,20 +336,26 @@ export default function ScheduleAppointmentScreen({ navigation }) {
       <LineaHorizontal />
       <View style={styles.tabBar}>
         <TouchableOpacity style={styles.tabItem}>
-        <Image source={require("../assets/casa.png")} style={{ width: 20, height: 20 }} />  
-        <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
+          <Image
+            source={require("../assets/casa.png")}
+            style={{ width: 20, height: 20 }}
+          />
+          <Text style={[styles.tabText, styles.activeTabText]}>Inicio</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
           <Image source={require("../assets/usuario.png")} style={{ width: 20, height: 20 }} />
           <Text style={styles.tabText}>Mi Expediente</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-        <Image source={require("../assets/configuracion.png")} style={{ width: 20, height: 20 }} />
+          <Image
+            source={require("../assets/configuracion.png")}
+            style={{ width: 20, height: 20 }}
+          />
           <Text style={styles.tabText}>Ajustes</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -457,4 +552,4 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: colors.primary,
   },
-})
+});
