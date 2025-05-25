@@ -100,5 +100,54 @@ router.post("/newAppointment", (req, res) => {
     res.json(results);
   });
 });
+
+router.post("/cancelAppointment", (req, res) => {
+  const { appointmentId } = req.body;
+  
+  if (!appointmentId) {
+    return res.status(400).json({ error: "Se requiere appointmentId" });
+  }
+
+  const query = `
+    UPDATE Cita 
+    SET estado = 'cancelada'
+    WHERE ID_Cita = @appointmentId
+    AND estado != 'cancelada'
+  `;
+  
+  const request = new Request(query, (err) => {
+    if (err) {
+      return res.status(500).json({ 
+        error: "Error al cancelar cita", 
+        detail: err.message 
+      });
+    }
+  });
+
+  request.addParameter("appointmentId", TYPES.Int, appointmentId);
+
+  let results = [];
+  request.on("row", (columns) => {
+    const row = {};
+    columns.forEach((column) => {
+      row[column.metadata.colName] = column.value;
+    });
+    results.push(row);
+  });
+
+  request.on("requestCompleted", () => {
+    if (results.length === 0) {
+      return res.status(404).json({ 
+        error: "Cita no encontrada o ya estaba cancelada" 
+      });
+    }
+    res.json({ 
+      message: "Cita cancelada exitosamente",
+      cita: results[0] 
+    });
+  });
+
+  connection.execSql(request);
+});
 module.exports = { router };
  
