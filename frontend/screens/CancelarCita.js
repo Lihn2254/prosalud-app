@@ -70,7 +70,7 @@ export default function CancelarCita({ navigation, route }) {
           style={styles.cancelButton}
           onPress={() => navigation.goBack()}
         >
-          <Image source={require("../assets/FlechaIzquierdaB.png")} style={{ width: 25, height: 25 }} />
+          <Image source={require("../assets/FlechaIzquierdaN.png")} style={{ width: 25, height: 25 }} />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   confirmButton: {
-    backgroundColor: '#e22f2f',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     padding: 17,
     alignItems: "center",
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     marginButton: 5, 
   },
   cancelButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#e6e6e6',
     borderRadius: 8,
     padding: 17,
     alignItems: "center",
