@@ -10,12 +10,15 @@ import {
   SafeAreaView,
 } from "react-native";
 import colors from "../styles/colors";
+import { jwtDecode } from "jwt-decode";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
+    console.log("Iniciando sesión con:", email);
     try {
       const response = await fetch("http://192.168.1.12:3000/users/login", {
         method: "POST",
@@ -25,12 +28,51 @@ export default function LoginScreen({ navigation }) {
         body: JSON.stringify({ email, password }),
       });
 
-      const text = await response.text();
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+
+      const data = await response.json();
+      const token = data.token;
 
       if (response.status === 200) {
-        Alert.alert("Éxito", text);
-        // Guardar la información del usuario y navegar a la pantalla principal
-        navigation.navigate("HomeScreen");
+        // Decodificar el token para obtener los atributos
+        const usuario = jwtDecode(token);
+
+        // Guardar el token y atributos en AsyncStorage
+        await AsyncStorage.setItem("token", token);
+        await AsyncStorage.setItem(
+          "usuarioID_Usuario",
+          usuario.ID_Usuario.toString()
+        );
+        await AsyncStorage.setItem("usuarioNombre", usuario.nombre);
+        await AsyncStorage.setItem("usuarioApellidoP", usuario.apellidoP);
+        await AsyncStorage.setItem(
+          "usuarioPacienteID",
+          usuario.ID_Paciente.toString()
+        );
+        await AsyncStorage.setItem("usuarioApellidoM", usuario.apellidoM);
+        await AsyncStorage.setItem("usuarioEmail", usuario.email);
+        await AsyncStorage.setItem("usuarioNombre", usuario.nombre);
+
+        // Navegar a la pantalla principal de paciente
+        if (usuario.ID_Paciente !== null) {
+          navigation.navigate("HomeScreen");
+        } else if (usuario.ID_Medico !== null) {
+          navigation.navigate("HomeMedico");
+        } else if (usuario.ID_Administrador !== null) {
+          Alert.alert("Inicio de sesión exitoso", "Administrador");
+          //navigation.navigate('HomeScreen');
+        } else if (usuario.ID_Asistente !== null) {
+          Alert.alert("Inicio de sesión exitoso", "Asistente");
+          //navigation.navigate('HomeScreen');
+        } else {
+          Alert.alert(
+            "Error",
+            "No se pudo determinar el tipo de usuario. Favor de contactar a Soporte Técnico."
+          );
+        }
       } else {
         Alert.alert("Error", text);
       }
@@ -70,20 +112,16 @@ export default function LoginScreen({ navigation }) {
               El otro código, debajo de este, es un placeholder para navegar a la pantalla principal sin hacer la conexión al servidor, como prueba nada más
 
               <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
               </TouchableOpacity>
               */}
 
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => handleLogin()}
-      >
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.registerButton}
-        onPress={() => navigation.navigate("RegisterScreen")}
+        onPress={() => navigation.navigate("Register")}
       >
         <Text style={styles.registerButtonText}>Registrarse</Text>
       </TouchableOpacity>
@@ -110,7 +148,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   input: {
-    width: "80%",
+    width: "100%",
     height: 48,
     borderColor: "#ccc",
     borderWidth: 1,
@@ -120,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginButton: {
-    width: "80%",
+    width: "100%",
     height: 48,
     backgroundColor: colors.primary,
     borderRadius: 8,
@@ -133,7 +171,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   registerButton: {
-    width: "80%",
+    width: "100%",
     height: 48,
     borderColor: colors.primary,
     borderWidth: 1,

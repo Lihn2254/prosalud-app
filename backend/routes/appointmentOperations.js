@@ -3,24 +3,33 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db/db.js");
 
-const getNextAppointmentId = (connection, callback) => {
-  const request = new Request(
-    "SELECT MAX(ID_Cita) AS maxId FROM Cita",
-    (err) => {
-      if (err) return callback(err);
-    }
-  );
+const getNextAppointmentId = (callback) => {
+  const connection = db();
 
-  let maxId = 0;
-  request.on("row", (columns) => {
-    maxId = columns[0].value || 0;
+  connection.on("connect", (err) => {
+    if (err) return callback(err);
+
+    const request = new Request(
+      "SELECT MAX(ID_Cita) AS maxId FROM Cita",
+      (err) => {
+        if (err) return callback(err);
+      }
+    );
+
+    let maxId = 0;
+    request.on("row", (columns) => {
+      maxId = columns[0].value || 0;
+    });
+
+    request.on("requestCompleted", () => {
+      connection.close();
+      callback(null, maxId + 1);
+    });
+
+    connection.execSql(request);
   });
 
-  request.on("requestCompleted", () => {
-    callback(null, maxId + 1);
-  });
-
-  connection.execSql(request);
+  connection.connect();
 };
 
 router.get("/getAppointments", (req, res) => {
@@ -39,7 +48,24 @@ router.get("/getAppointments", (req, res) => {
         .json({ error: "Error de conexión", detail: err.message });
     }
 
-    const query = `SELECT * FROM Cita WHERE ID_Paciente = @patientId`;
+    // Query con JOINs para traer el nombre del médico
+    const query = `
+      SELECT 
+        C.ID_Cita,
+        C.ID_Paciente,
+        C.ID_Medico,
+        C.ID_Asistente,
+        C.fecha,
+        C.estado,
+        U.nombre AS doctorNombre,
+        U.apellidoP AS doctorApellidoP,
+        U.apellidoM AS doctorApellidoM
+      FROM Cita C
+      JOIN Medico M ON C.ID_Medico = M.ID_Medico
+      JOIN Usuario U ON M.ID_Usuario = U.ID_Usuario
+      WHERE C.ID_Paciente = @patientId
+    `;
+
     const request = new Request(query, (err) => {
       if (err) {
         return res.status(500).json({
@@ -56,7 +82,27 @@ router.get("/getAppointments", (req, res) => {
       columns.forEach((column) => {
         row[column.metadata.colName] = column.value;
       });
-      results.push(row);
+
+      // Transformar formato de salida aquí mismo
+      const fechaObj = new Date(row.fecha);
+      const fechaFormateada = fechaObj.toLocaleDateString("es-MX", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      const horaFormateada = fechaObj.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      results.push({
+        id: row.ID_Cita,
+        date: fechaFormateada,
+        time: horaFormateada,
+        clinic: "Clínica - Colinas de San Miguel",
+        doctor: `${row.doctorNombre} ${row.doctorApellidoP} ${row.doctorApellidoM}`,
+        status: row.estado,
+      });
     });
 
     request.on("requestCompleted", () => {
@@ -72,38 +118,59 @@ router.get("/getAppointments", (req, res) => {
 
 router.post("/newAppointment", (req, res) => {
   const { patientId, medicId, assistantId, date } = req.body;
-  const query = `INSERT INTO Cita (ID_Paciente,ID_Medico,ID_Asistente,fecha,estado) VALUES (@patientId, @medicId, @assistantId, @date, @status)`;
-  const request = new Request(query, (err) => {
+
+  getNextAppointmentId((err, apptId) => {
     if (err) {
-      res
+      return res
         .status(500)
-        .json({ error: "Error al ejecutar la consulta", detail: err });
-    } else {
-      res.status(200).json({ message: "Datos insertados correctamente." });
+        .json({ error: "Error al obtener el ID de cita", detail: err.message });
     }
-  });
 
-  request.addParameter("patientId", TYPES.Int, patientId);
-  request.addParameter("medicId", TYPES.Int, medicId);
-  request.addParameter("assistantId", assistantId);
-  request.addParameter("date", date);
-  request.addParameter("status", "pendiente");
+    const connection = db();
 
-  request.on("row", (columns) => {
-    const row = {};
-    columns.forEach((column) => {
-      row[column.metadata.colName] = column.value;
+    connection.on("connect", (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "Error de conexión", detail: err.message });
+      }
+
+      const query = `INSERT INTO Cita (ID_Cita, ID_Paciente, ID_Medico, ID_Asistente, fecha, estado)
+                     VALUES (@apptId, @patientId, @medicId, @assistantId, @date, @status)`;
+
+      const request = new Request(query, (err) => {
+        if (err) {
+          connection.close();
+          return res.status(500).json({
+            error: "Error al ejecutar el INSERT",
+            detail: err.message,
+          });
+        }
+
+        res.status(200).json({
+          message: "Cita creada correctamente",
+          appointmentId: apptId,
+        });
+        connection.close();
+      });
+
+      request.addParameter("apptId", TYPES.Int, apptId);
+      request.addParameter("patientId", TYPES.Int, patientId);
+      request.addParameter("medicId", TYPES.Int, medicId);
+      request.addParameter("assistantId", TYPES.Int, assistantId);
+      request.addParameter("date", TYPES.DateTime, new Date(date));
+      request.addParameter("status", TYPES.NVarChar, "pendiente");
+
+      connection.execSql(request);
     });
-  });
 
-  request.on("requestCompleted", () => {
-    res.json(results);
+    connection.connect();
   });
 });
 
 router.post("/cancelAppointment", (req, res) => {
   const { appointmentId } = req.body;
-  
+
   if (!appointmentId) {
     return res.status(400).json({ error: "Se requiere appointmentId" });
   }
@@ -114,12 +181,12 @@ router.post("/cancelAppointment", (req, res) => {
     WHERE ID_Cita = @appointmentId
     AND estado != 'cancelada'
   `;
-  
+
   const request = new Request(query, (err) => {
     if (err) {
-      return res.status(500).json({ 
-        error: "Error al cancelar cita", 
-        detail: err.message 
+      return res.status(500).json({
+        error: "Error al cancelar cita",
+        detail: err.message,
       });
     }
   });
@@ -137,17 +204,16 @@ router.post("/cancelAppointment", (req, res) => {
 
   request.on("requestCompleted", () => {
     if (results.length === 0) {
-      return res.status(404).json({ 
-        error: "Cita no encontrada o ya estaba cancelada" 
+      return res.status(404).json({
+        error: "Cita no encontrada o ya estaba cancelada",
       });
     }
-    res.json({ 
+    res.json({
       message: "Cita cancelada exitosamente",
-      cita: results[0] 
+      cita: results[0],
     });
   });
 
   connection.execSql(request);
 });
 module.exports = { router };
- 
