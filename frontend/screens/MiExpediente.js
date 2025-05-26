@@ -11,6 +11,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native"
+import ip from "../utils/myIP";
 import colors from "../styles/colors"
 import { Container } from "../components/container"
 import { LineaHorizontal } from "../components/linea"
@@ -26,50 +27,6 @@ export default function MiExpedienteScreen({ navigation }) {
   })
   const [pastAppointments, setPastAppointments] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // Sample past appointments data - replace with actual API call
-  const samplePastAppointments = [
-    {
-      id: 1,
-      date: "Marzo 15, 2025",
-      time: "10:00",
-      clinic: "Clínica - Colinas de San Miguel",
-      doctor: "Dr. Carlos Mendoza",
-      specialty: "Medicina General",
-      status: "Completada",
-      diagnosis: "Revisión general - Todo normal",
-    },
-    {
-      id: 2,
-      date: "Febrero 28, 2025",
-      time: "14:30",
-      clinic: "Clínica - Centro",
-      doctor: "Dra. Ana García López",
-      specialty: "Cardiología",
-      status: "Completada",
-      diagnosis: "Control de presión arterial",
-    },
-    {
-      id: 3,
-      date: "Enero 20, 2025",
-      time: "09:15",
-      clinic: "Clínica - Norte",
-      doctor: "Dr. Javier Lizárraga Moreno",
-      specialty: "Cardiología",
-      status: "Completada",
-      diagnosis: "Electrocardiograma - Resultados normales",
-    },
-    {
-      id: 4,
-      date: "Diciembre 10, 2024",
-      time: "16:00",
-      clinic: "Clínica - Colinas de San Miguel",
-      doctor: "Dra. María Rodríguez",
-      specialty: "Dermatología",
-      status: "Completada",
-      diagnosis: "Revisión de lunares - Sin anomalías",
-    },
-  ]
 
   useEffect(() => {
     loadUserData()
@@ -101,12 +58,38 @@ export default function MiExpedienteScreen({ navigation }) {
 
   const loadPastAppointments = async () => {
     try {
-      // Here you would make an API call to get past appointments
-      // For now, using sample data
-      setPastAppointments(samplePastAppointments)
+      const pacienteIDString = await AsyncStorage.getItem(
+        "usuarioPacienteID"
+      );
+      const patientId = parseInt(pacienteIDString);
+      if (!patientId) return;
+      console.log("Antes de fetch: ", patientId);
+
+      const response = await fetch(`http://${ip}:3000/users/getExpediente?patientId=${patientId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+
+      console.log("Después de fetch: ", patientId);
+
+      if (!response.ok) {
+        throw new Error("Error al obtener el expediente")
+      }
+
+      const data = await response.json()
+      console.log(data);
+
+      if (Array.isArray(data)) {
+        setPastAppointments(data || []);
+      } else {
+        console.warn("Respuesta inesperada:", data);
+      }
+
       setLoading(false)
     } catch (error) {
-      console.error("Error loading past appointments:", error)
+      console.error("Error al cargar el expediente:", error)
       setLoading(false)
     }
   }
@@ -179,24 +162,31 @@ export default function MiExpedienteScreen({ navigation }) {
             </View>
           ) : (
             pastAppointments.map((appointment) => (
-              <View key={appointment.id} style={styles.appointmentCard}>
+              <View key={appointment.folioConsulta} style={styles.appointmentCard}>
                 <View style={styles.appointmentHeader}>
                   <Text style={styles.appointmentDate}>
-                    {appointment.date} | {appointment.time}
+                    {appointment.fecha} | {appointment.hora}
                   </Text>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
-                    <Text style={styles.statusText}>{appointment.status}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: "green" }]}>
+                    <Text style={styles.statusText}>{appointment.estado}</Text>
                   </View>
                 </View>
 
-                <Text style={styles.appointmentSpecialty}>{appointment.specialty}</Text>
-                <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
-                <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
+                <Text style={styles.appointmentSpecialty}>{appointment.especialidad}</Text>
+                <Text style={styles.appointmentDoctor}>{appointment.nombreMedico}</Text>
+                <Text style={styles.appointmentLocation}>{appointment.sucursal}</Text>
 
-                {appointment.diagnosis && (
+                {appointment.diagnostico && (
                   <View style={styles.diagnosisContainer}>
                     <Text style={styles.diagnosisLabel}>Diagnóstico:</Text>
-                    <Text style={styles.diagnosisText}>{appointment.diagnosis}</Text>
+                    <Text style={styles.diagnosisText}>{appointment.diagnostico}</Text>
+                  </View>
+                )}
+
+                {appointment.receta && (
+                  <View style={styles.diagnosisContainer}>
+                    <Text style={styles.diagnosisLabel}>Receta:</Text>
+                    <Text style={styles.diagnosisText}>{appointment.receta}</Text>
                   </View>
                 )}
 
