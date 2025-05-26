@@ -47,9 +47,23 @@ export default function AdminDashboardScreen({ navigation }) {
     "Consultorio 4",
     "Consultorio 5",
   ]);
+  const [sucursales] = useState(["Norte", "Sur"]);
+  const [horarios] = useState([
+    "8:00 - 9:00",
+    "9:00 - 10:00",
+    "10:00 - 11:00",
+    "11:00 - 12:00",
+    "12:00 - 13:00",
+    "13:00 - 14:00",
+    "14:00 - 15:00",
+    "15:00 - 16:00",
+    "16:00 - 17:00"
+  ]);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedConsultorio, setSelectedConsultorio] = useState("");
+  const [selectedSucursal, setSelectedSucursal] = useState("");
+  const [selectedHorario, setSelectedHorario] = useState("");
 
   // Especialidades para filtros
   const specialties = [
@@ -92,10 +106,38 @@ export default function AdminDashboardScreen({ navigation }) {
     try {
       // Simulación de datos
       const mockDoctors = [
-        { id: 1, name: "Dra. Ana García", specialty: "Cardiología", consultorio: "Consultorio 1" },
-        { id: 2, name: "Dr. Javier Lizárraga", specialty: "Neurología", consultorio: "Consultorio 3" },
-        { id: 3, name: "Dr. Carlos Mendoza", specialty: "Medicina General", consultorio: "" },
-        { id: 4, name: "Dra. María Rodríguez", specialty: "Dermatología", consultorio: "Consultorio 2" },
+        { 
+          id: 1, 
+          name: "Dra. Ana García", 
+          specialty: "Cardiología", 
+          consultorio: "Consultorio 1",
+          sucursal: "Norte",
+          horario: "9:00 - 10:00"
+        },
+        { 
+          id: 2, 
+          name: "Dr. Javier Lizárraga", 
+          specialty: "Neurología", 
+          consultorio: "Consultorio 3",
+          sucursal: "Sur",
+          horario: "11:00 - 12:00"
+        },
+        { 
+          id: 3, 
+          name: "Dr. Carlos Mendoza", 
+          specialty: "Medicina General", 
+          consultorio: "",
+          sucursal: "",
+          horario: ""
+        },
+        { 
+          id: 4, 
+          name: "Dra. María Rodríguez", 
+          specialty: "Dermatología", 
+          consultorio: "Consultorio 2",
+          sucursal: "Norte",
+          horario: "14:00 - 15:00"
+        },
       ];
       setDoctors(mockDoctors);
     } catch (error) {
@@ -131,6 +173,8 @@ export default function AdminDashboardScreen({ navigation }) {
   const handleAssignConsultorio = (doctor) => {
     setSelectedDoctor(doctor);
     setSelectedConsultorio(doctor.consultorio || "");
+    setSelectedSucursal(doctor.sucursal || "");
+    setSelectedHorario(doctor.horario || "");
     setAssignModalVisible(true);
   };
 
@@ -138,7 +182,12 @@ export default function AdminDashboardScreen({ navigation }) {
     // Actualizar el estado de los doctores con la nueva asignación
     setDoctors(doctors.map(doc => 
       doc.id === selectedDoctor.id 
-        ? { ...doc, consultorio: selectedConsultorio } 
+        ? { 
+            ...doc, 
+            consultorio: selectedConsultorio,
+            sucursal: selectedSucursal,
+            horario: selectedHorario
+          } 
         : doc
     ));
     setAssignModalVisible(false);
@@ -148,7 +197,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
   // Datos para gráficos
   const occupancyData = [
-    { name: "Ocupado", population: stats.completedAppointments, color: colors.primary, legendFontColor: "#7F7F7F" },
+    { name: "Completado", population: stats.completedAppointments, color: colors.primary, legendFontColor: "#7F7F7F" },
     { name: "Cancelado", population: stats.canceledAppointments, color: "#FF6B6B", legendFontColor: "#7F7F7F" },
   ];
 
@@ -284,9 +333,21 @@ export default function AdminDashboardScreen({ navigation }) {
               <View style={styles.doctorInfo}>
                 <Text style={styles.doctorName}>{item.name}</Text>
                 <Text style={styles.doctorSpecialty}>{item.specialty}</Text>
-                <Text style={styles.doctorConsultorio}>
-                  {item.consultorio || "Sin asignar"}
-                </Text>
+                {item.consultorio ? (
+                  <>
+                    <Text style={styles.doctorDetail}>
+                      Sucursal: {item.sucursal || "No asignada"}
+                    </Text>
+                    <Text style={styles.doctorDetail}>
+                      Consultorio: {item.consultorio}
+                    </Text>
+                    <Text style={styles.doctorDetail}>
+                      Horario: {item.horario || "No asignado"}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={styles.doctorConsultorio}>Sin asignación completa</Text>
+                )}
               </View>
               <TouchableOpacity
                 style={styles.assignButton}
@@ -307,6 +368,21 @@ export default function AdminDashboardScreen({ navigation }) {
             Asignar consultorio a {selectedDoctor?.name}
           </Text>
           
+          {/* Selector de Sucursal */}
+          <Text style={styles.modalLabel}>Sucursal:</Text>
+          <Picker
+            selectedValue={selectedSucursal}
+            onValueChange={(itemValue) => setSelectedSucursal(itemValue)}
+            style={styles.modalPicker}
+          >
+            <Picker.Item label="Seleccionar sucursal" value="" />
+            {sucursales.map((sucursal, index) => (
+              <Picker.Item key={`sucursal-${index}`} label={sucursal} value={sucursal} />
+            ))}
+          </Picker>
+          
+          {/* Selector de Consultorio */}
+          <Text style={styles.modalLabel}>Consultorio:</Text>
           <Picker
             selectedValue={selectedConsultorio}
             onValueChange={(itemValue) => setSelectedConsultorio(itemValue)}
@@ -314,7 +390,20 @@ export default function AdminDashboardScreen({ navigation }) {
           >
             <Picker.Item label="Seleccionar consultorio" value="" />
             {consultorios.map((consultorio, index) => (
-              <Picker.Item key={index} label={consultorio} value={consultorio} />
+              <Picker.Item key={`consultorio-${index}`} label={consultorio} value={consultorio} />
+            ))}
+          </Picker>
+          
+          {/* Selector de Horario */}
+          <Text style={styles.modalLabel}>Horario:</Text>
+          <Picker
+            selectedValue={selectedHorario}
+            onValueChange={(itemValue) => setSelectedHorario(itemValue)}
+            style={styles.modalPicker}
+          >
+            <Picker.Item label="Seleccionar horario" value="" />
+            {horarios.map((horario, index) => (
+              <Picker.Item key={`horario-${index}`} label={horario} value={horario} />
             ))}
           </Picker>
           
@@ -514,6 +603,11 @@ const styles = StyleSheet.create({
     color: "#666",
     fontStyle: "italic",
   },
+  doctorDetail: {
+    fontSize: 13,
+    color: "#555",
+    marginTop: 2,
+  },
   assignButton: {
     backgroundColor: colors.primary,
     borderRadius: 6,
@@ -537,13 +631,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  modalLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 10,
+    marginBottom: 5,
+  },
   modalPicker: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 10,
   },
   modalButton: {
     borderRadius: 6,
