@@ -143,4 +143,71 @@ router.get("/getExpediente", (req, res) => {
   connection.connect();
 });
 
+router.get("/getInfoUsuario", (req, res) => {
+  const patientId = parseInt(req.query.patientId);
+  if (!patientId) {
+    return res.status(400).json({ error: "Se requiere patientId válido" });
+  }
+
+  const connection = getConnection();
+  const results = [];
+
+  connection.on("connect", (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "Error de conexión", detail: err.message });
+    }
+
+    // Query con JOINs para traer el nombre del médico
+    const query = `
+      select * from DetallesExpediente
+      where ID_Paciente = @patientId
+    `;
+
+    const request = new Request(query, (err) => {
+      if (err) {
+        return res.status(500).json({
+          error: "Error al ejecutar la consulta",
+          detail: err.message,
+        });
+      }
+    });
+
+    request.addParameter("patientId", TYPES.Int, patientId);
+
+    request.on("row", (columns) => {
+      const row = {};
+      columns.forEach((column) => {
+        row[column.metadata.colName] = column.value;
+      });
+
+      const nombrePaciente = `${row.nombre} ${row.apellidoP ?? ""} ${row.apellidoM ?? ""}`.trim();
+
+      results.push({
+        id_expediente: row.ID_Expediente,
+        id_paciente: row.ID_Paciente,
+        id_usuario: row.ID_Usuario,
+        nombre: nombrePaciente,
+        edad: row.edad,
+        genero: row.genero,
+        fecha_alta: row.fecha_alta,
+        antecedentes: row.antecedentes,
+        alergias: row.alergias,
+        enfermedades: row.enfermedades,
+      });
+
+      console.log(results);
+    });
+
+    request.on("requestCompleted", () => {
+      res.json(results);
+      connection.close();
+    });
+    connection.execSql(request);
+  });
+
+  connection.connect();
+});
+
 module.exports = { router };
