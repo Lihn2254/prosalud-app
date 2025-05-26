@@ -12,7 +12,7 @@ import colors from "../styles/colors";
 import ip from "../utils/myIP";
 import { Container } from "../components/container";
 import { useState } from "react";
-
+import { Alert } from "react-native";
 export default function CancelarCita({ navigation, route }) {
   const { appointment } = route.params; // Recibe la cita a Cancelar
 
@@ -23,6 +23,48 @@ export default function CancelarCita({ navigation, route }) {
   const [notes, setNotes] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+        const response = await fetch(`http://${ip}:3000/appointments/cancelAppointment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appointmentId }), // Envía solo el ID
+        });
+        console.log("Respuesta del servidor:", response); 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Error al cancelar la cita");
+        }
+
+        const result = await response.text(); // Lee la respuesta como texto
+        alert(result); // Muestra "Cita cancelada" o el error
+        navigation.navigate("HomeScreen");
+    } catch (error) {
+        alert("Error al conectar con el servidor");
+        console.error(error);
+    }
+  };
+
+  const isRefundable = () => {
+  // 1. Parseamos la fecha de la cita (formato "26 de mayo de 2025")
+  const [dia, mes, año] = appointment.date.split(' de ');
+  const meses = {
+    enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+    julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+  };
+  
+  const fechaCita = new Date(año, meses[mes.toLowerCase()], dia);
+  
+  // 2. Fecha actual (sin horas/minutos/segundos)
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  
+  // 3. Diferencia en días
+  const diffDias = (fechaCita - hoy) / (1000 * 60 * 60 * 24);
+  
+  return diffDias >= 2; // True si hay 2 o más días de diferencia
+};
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -50,18 +92,31 @@ export default function CancelarCita({ navigation, route }) {
         </Container>
 
         {/* Sección: advertencia */}
+
+        {isRefundable() ? 
+        <Container style={styles.confirmButton}>
+        {
+          <View style={styles.appointmentInfo}>
+                <Text style={styles.warningText}>
+                  ✅ Esta cancelación es aplicable para reembolso
+                </Text>
+          </View>
+        }
+        </Container> :
         <Container style={styles.warningContainer}>
         {
           <View style={styles.appointmentInfo}>
-            <Text style={styles.warningText}>⚠️ Debido a nuestra política de cancelación, dentro de 48 hrs esta cancelación no es aplicable para un reembolso.</Text>
+                <Text style={styles.warningText}>
+                  ⚠️ Esta cancelación NO es aplicable para reembolso (menos de 2 días)
+                </Text>
           </View>
         }
-        </Container>
+        </Container>}
 
         {/* Botón de Guardar */}
         <TouchableOpacity 
           style={styles.confirmButton}
-          onPress={() => setShowSaveModal(true)}
+          onPress={() => handleCancelAppointment(appointment.id)}
         >
           <Text style={styles.confirmButtonText}>Confirmar Cancelación</Text>
         </TouchableOpacity>
