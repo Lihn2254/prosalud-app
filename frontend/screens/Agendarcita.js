@@ -68,7 +68,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
       console.log(datetime);
 
       const response = await fetch(
-        "http://192.168.1.12:3000/appointments/newAppointment",
+        `http://${ip}:3000/appointments/newAppointment`,
         {
           method: "POST",
           headers: {
