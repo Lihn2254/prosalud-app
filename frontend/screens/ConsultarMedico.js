@@ -9,6 +9,8 @@ import {
     TouchableOpacity,
     ScrollView,
     TextInput,
+    Alert,
+    Modal
 } from "react-native";
 import colors from "../styles/colors";
 import ip from "../utils/myIP";
@@ -20,7 +22,10 @@ export default function ConsultarMedico() {
     const { id_paciente, id_cita } = route.params;
     const [consulta, setConsulta] = useState({});
     const [diagnostico, setDiagnostico] = useState("");
+    const [recetaModalVisible, setRecetaModalVisible] = useState(false);
     const [observaciones, setObservaciones] = useState("");
+    const [recetaTexto, setRecetaTexto] = useState('');
+    const [inputTemporal, setInputTemporal] = useState("");
 
     useEffect(() => {
         const fetchConsultaPaciente = async () => {
@@ -38,11 +43,37 @@ export default function ConsultarMedico() {
         fetchConsultaPaciente();
     }, [id_cita]);
 
-    const handleTerminarConsulta = () => {
-        // Aquí puedes agregar la lógica para terminar la consulta (ejemplo: enviar datos al backend)
-        // Por ahora solo muestra un mensaje y regresa
-        alert("Consulta terminada.");
-        navigation.goBack();
+    const handleGuardarConsulta = async (id_cita) => {
+        try {
+            const response = await fetch(
+                `http://${ip}:3000/medAppointments/newAppointment`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    //folioConsulta, id_cita, diagnostico, observaciones
+                    body: JSON.stringify({
+                        folioConsulta: Math.floor(100000 + Math.random() * 900000),
+                        id_cita: consulta.id_cita,
+                        nuevoDiagnostico: diagnostico,
+                        nuevasObservaciones: observaciones,
+                        recetaTexto: recetaTexto,
+                    }),
+                }
+            );
+
+            if (!response.ok) throw new Error("Error al guardar consulta");
+
+            const result = await response.json();
+            console.log("Consulta guardada", result);
+            navigation.navigate("HomeMedico");
+            //Alert.alert("Éxito", "Consulta guardada.");
+        } catch (error) {
+            console.error("Error al guardar los cambios en la base de datos: ", error)
+        }
+        Alert.alert("Éxito.", "Consulta guardada correctamente.");
+        navigation.navigate("HomeMedico");
     };
 
     return (
@@ -62,10 +93,6 @@ export default function ConsultarMedico() {
             <ScrollView style={styles.content}>
                 <View style={styles.appointmentCard}>
                     <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Folio de consulta: </Text>
-                        {consulta.folioConsulta || "Sin datos"}
-                    </Text>
-                    <Text style={styles.detailText}>
                         <Text style={styles.detailLabel}>ID Cita: </Text>
                         {consulta.id_cita}
                     </Text>
@@ -78,8 +105,12 @@ export default function ConsultarMedico() {
                         {consulta.paciente}
                     </Text>
                     <Text style={styles.detailText}>
-                        <Text style={styles.detailLabel}>Estado: </Text>
-                        {consulta.estado}
+                        <Text style={styles.detailLabel}>Edad: </Text>
+                        {consulta.edad}
+                    </Text>
+                    <Text style={styles.detailText}>
+                        <Text style={styles.detailLabel}>Genero: </Text>
+                        {consulta.genero}
                     </Text>
 
                     <LineaHorizontal />
@@ -93,7 +124,7 @@ export default function ConsultarMedico() {
                             placeholder="Escribe el diagnóstico"
                             multiline
                         />
-                        <Text style={styles.detailFieldTitle}>Observaciones</Text>
+                        <Text style={styles.detailFieldTitle}>Motivo / Observaciones</Text>
                         <TextInput
                             style={styles.inputObservaciones}
                             value={observaciones}
@@ -105,7 +136,52 @@ export default function ConsultarMedico() {
                 </View>
             </ScrollView>
 
-            <TouchableOpacity style={styles.recetasButton}>
+            <Modal
+                visible={recetaModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setRecetaModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.recetaModalContent}>
+                        <Text style={styles.recetaModalTitle}>Añadir receta</Text>
+
+                        <TextInput
+                            style={styles.recetaInput}
+                            placeholder="Cuerpo de la receta"
+                            value={inputTemporal}
+                            onChangeText={setInputTemporal}
+                            multiline
+                        />
+
+                        <View style={styles.recetaModalButtons}>
+                            <TouchableOpacity
+                                style={[styles.recetaModalButton, styles.cancelButton]}
+                                onPress={() => {
+                                    setInputTemporal("");
+                                    setRecetaModalVisible(false)
+                                }}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.recetaModalButton, styles.saveButton]}
+                                onPress={() => {
+                                    setRecetaTexto(inputTemporal);
+                                    setRecetaModalVisible(false);
+                                    Alert.alert("Éxito.", "Receta guardada.")
+                                }}
+                            >
+                                <Text style={styles.saveButtonText}>Guardar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+
+            <TouchableOpacity style={styles.recetasButton} onPress={() => setRecetaModalVisible(true)}>
                 <Text style={styles.sectionTitle}>Añadir receta</Text>
             </TouchableOpacity>
 
@@ -119,7 +195,7 @@ export default function ConsultarMedico() {
 
                 <TouchableOpacity
                     style={styles.finishButton}
-                    onPress={handleTerminarConsulta}
+                    onPress={handleGuardarConsulta}
                 >
                     <Text style={styles.actionButtonText}>Terminar consulta</Text>
                 </TouchableOpacity>
@@ -191,6 +267,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f9f9f9",
         fontSize: 16,
         minHeight: 100,
+        textAlignVertical: "top",
     },
     inputObservaciones: {
         borderWidth: 1,
@@ -201,6 +278,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#f9f9f9",
         fontSize: 16,
         minHeight: 200,
+        textAlignVertical: "top",
     },
     recetasButton: {
         backgroundColor: "white",
@@ -274,5 +352,65 @@ const styles = StyleSheet.create({
     },
     activeTabText: {
         color: colors.primary,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    recetaModalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 20,
+        width: '85%',
+    },
+    recetaModalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        padding: 5,
+    },
+    recetaInput: {
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 10,
+        padding: 10,
+        textAlignVertical: 'top',
+        fontSize: 18,
+        marginBottom: 20,
+        minHeight: 200,
+    },
+    recetaModalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    recetaModalButton: {
+        flex: 1,
+        padding: 10,
+        borderRadius:20,
+        alignItems: 'center',
+        marginHorizontal: 5,
+    },
+    cancelButton: {
+        backgroundColor: 'white',
+        borderColor: 'black',
+        borderWidth: 1,
+    },
+    saveButton: {
+        backgroundColor: colors.primary,
+    },
+    cancelButtonText: {
+        color: 'black',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    saveButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
 });

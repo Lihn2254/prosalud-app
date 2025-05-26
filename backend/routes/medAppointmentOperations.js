@@ -106,10 +106,12 @@ router.get("/onGoingAppointment", (req, res) => {
 
       results.push({
         folioConsulta: row.folioConsulta,
-        id_usuario: row.ID_Usuario,
         id_cita: row.ID_Cita,
+        id_usuario: row.ID_Usuario,
         id_paciente: row.ID_Paciente,
         paciente: `${row.nombre} ${row.apellidoP} ${row.apellidoM}`,
+        edad: row.edad,
+        genero: row.genero,
         estado: row.estado,
         diagnostico: row.diagnostico,
         observaciones: row.observaciones
@@ -120,6 +122,49 @@ router.get("/onGoingAppointment", (req, res) => {
       res.json(results);
       connection.close();
     });
+
+    connection.execSql(request);
+  });
+
+  connection.connect();
+});
+
+router.post("/newAppointment", (req, res) => {
+  const { folioConsulta, id_cita, nuevoDiagnostico, nuevasObservaciones, recetaTexto} = req.body;
+
+  const connection = db();
+
+  connection.on("connect", (err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ error: "Error de conexión", detail: err.message });
+    }
+
+    const query = `EXEC InsertarConsultaDesdeVista @folio = @folioConsulta, @ID_Cita = @id_cita, 
+    @diagnostico = @nuevoDiagnostico, @observaciones = @nuevasObservaciones,
+    @detalles = @recetaTexto;`;
+
+    const request = new Request(query, (err) => {
+      if (err) {
+        connection.close();
+        return res.status(500).json({
+          error: "Error al ejecutar el INSERT",
+          detail: err.message,
+        });
+      }
+
+      res.status(200).json({
+        message: "Consulta guardada correctamente",
+      });
+      connection.close();
+    });
+
+    request.addParameter("folioConsulta", TYPES.Int, folioConsulta);
+    request.addParameter("id_cita", TYPES.Int, id_cita);
+    request.addParameter('nuevoDiagnostico', TYPES.NVarChar, nuevoDiagnostico, { length: 150 });
+    request.addParameter('nuevasObservaciones', TYPES.NVarChar, nuevasObservaciones, { length: 400 });
+    request.addParameter('recetaTexto', TYPES.NVarChar, recetaTexto, { length: 400 });
 
     connection.execSql(request);
   });
