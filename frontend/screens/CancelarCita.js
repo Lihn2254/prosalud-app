@@ -31,7 +31,7 @@ export default function CancelarCita({ navigation, route }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ appointmentId }), // Envía solo el ID
         });
-        console.log("Respuesta del servidor:", response); 
+        // Verifica si la respuesta es exitosa
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(errorText || "Error al cancelar la cita");
