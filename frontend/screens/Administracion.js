@@ -104,7 +104,7 @@ export default function AdminDashboardScreen({ navigation }) {
   };
 
   const fetchDoctors = async () => {
-    const apiUrl = `http://${ip}:3000/getDoctorsAdmin`;
+    const apiUrl = `http://${ip}:3000/admin/getDoctorsAdmin`;
 
     try {
       const response = await fetch(apiUrl);
