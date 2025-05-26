@@ -10,6 +10,7 @@ import ModificarCita from "./screens/ModificarCita";
 import CancelarCita from "./screens/CancelarCita";
 import RegisterScreen from "./screens/RegisterScreen";
 import MiExpediente from "./screens/MiExpediente";
+import Administracion from "./screens/Administracion";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ export default function App() {
           <Stack.Screen name="CancelarCita" component={CancelarCita} />
           <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="MiExpediente" component={MiExpediente} />
+          <Stack.Screen name="Administracion" component={Administracion} />
         </Stack.Navigator>
       </NavigationContainer>
     </UserProvider>

@@ -87,7 +87,7 @@ export default function LoginScreen({ navigation }) {
           navigation.navigate("HomeMedico");
         } else if (usuario.ID_Administrador !== null) {
           Alert.alert("Inicio de sesión exitoso", "Administrador");
-          //navigation.navigate("testPantalla");
+          navigation.navigate("Administracion");
         } else if (usuario.ID_Asistente !== null) {
           Alert.alert("Inicio de sesión exitoso", "Asistente");
           //navigation.navigate('HomeScreen');
