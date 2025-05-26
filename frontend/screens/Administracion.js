@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PieChart, BarChart } from "react-native-chart-kit";
 import Modal from "react-native-modal";
 import { Picker } from "@react-native-picker/picker";
+import ip from "../utils/myIP";
 
 export default function AdminDashboardScreen({ navigation }) {
   // Estados para las estadísticas
@@ -57,7 +58,7 @@ export default function AdminDashboardScreen({ navigation }) {
     "13:00 - 14:00",
     "14:00 - 15:00",
     "15:00 - 16:00",
-    "16:00 - 17:00"
+    "16:00 - 17:00",
   ]);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -103,45 +104,31 @@ export default function AdminDashboardScreen({ navigation }) {
   };
 
   const fetchDoctors = async () => {
+    const apiUrl = `http://${ip}:3000/getDoctorsAdmin`;
+
     try {
-      // Simulación de datos
-      const mockDoctors = [
-        { 
-          id: 1, 
-          name: "Dra. Ana García", 
-          specialty: "Cardiología", 
-          consultorio: "Consultorio 1",
-          sucursal: "Norte",
-          horario: "9:00 - 10:00"
-        },
-        { 
-          id: 2, 
-          name: "Dr. Javier Lizárraga", 
-          specialty: "Neurología", 
-          consultorio: "Consultorio 3",
-          sucursal: "Sur",
-          horario: "11:00 - 12:00"
-        },
-        { 
-          id: 3, 
-          name: "Dr. Carlos Mendoza", 
-          specialty: "Medicina General", 
-          consultorio: "",
-          sucursal: "",
-          horario: ""
-        },
-        { 
-          id: 4, 
-          name: "Dra. María Rodríguez", 
-          specialty: "Dermatología", 
-          consultorio: "Consultorio 2",
-          sucursal: "Norte",
-          horario: "14:00 - 15:00"
-        },
-      ];
-      setDoctors(mockDoctors);
+      const response = await fetch(apiUrl);
+
+      if (!response.ok) {
+        let errorDetail = response.statusText;
+        try {
+          const errorResponse = await response.json();
+          errorDetail =
+            errorResponse.detail ||
+            errorResponse.error ||
+            errorResponse.message ||
+            errorDetail;
+        } catch (e) {}
+        throw new Error(
+          `Error al obtener los doctores. Estado: ${response.status}. Detalle: ${errorDetail}`
+        );
+      }
+
+      const doctorsData = await response.json();
+
+      setDoctors(doctorsData);
     } catch (error) {
-      console.error("Error fetching doctors:", error);
+      console.error("Error fetching doctors:", error.message);
     }
   };
 
@@ -149,21 +136,41 @@ export default function AdminDashboardScreen({ navigation }) {
     try {
       // Simulación de datos basados en filtros
       let mockReports = [];
-      
+
       if (filter.type === "financial") {
         mockReports = [
-          { id: 1, title: "Ingresos totales", value: "$125,430", change: "+12%" },
+          {
+            id: 1,
+            title: "Ingresos totales",
+            value: "$125,430",
+            change: "+12%",
+          },
           { id: 2, title: "Consultas realizadas", value: "298", change: "+8%" },
-          { id: 3, title: "Ingresos por especialidad", value: "Cardiología: $45,200", change: "+15%" },
+          {
+            id: 3,
+            title: "Ingresos por especialidad",
+            value: "Cardiología: $45,200",
+            change: "+15%",
+          },
         ];
       } else {
         mockReports = [
           { id: 1, title: "Nuevos pacientes", value: "67", change: "+5%" },
-          { id: 2, title: "Distribución por edad", value: "18-35: 42%", change: "-3%" },
-          { id: 3, title: "Procedimientos comunes", value: "Consulta general: 58%", change: "+2%" },
+          {
+            id: 2,
+            title: "Distribución por edad",
+            value: "18-35: 42%",
+            change: "-3%",
+          },
+          {
+            id: 3,
+            title: "Procedimientos comunes",
+            value: "Consulta general: 58%",
+            change: "+2%",
+          },
         ];
       }
-      
+
       setReports(mockReports);
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -180,25 +187,37 @@ export default function AdminDashboardScreen({ navigation }) {
 
   const confirmAssignConsultorio = () => {
     // Actualizar el estado de los doctores con la nueva asignación
-    setDoctors(doctors.map(doc => 
-      doc.id === selectedDoctor.id 
-        ? { 
-            ...doc, 
-            consultorio: selectedConsultorio,
-            sucursal: selectedSucursal,
-            horario: selectedHorario
-          } 
-        : doc
-    ));
+    setDoctors(
+      doctors.map((doc) =>
+        doc.id === selectedDoctor.id
+          ? {
+              ...doc,
+              consultorio: selectedConsultorio,
+              sucursal: selectedSucursal,
+              horario: selectedHorario,
+            }
+          : doc
+      )
+    );
     setAssignModalVisible(false);
-    
+
     // Aquí iría la llamada API para guardar el cambio en el backend
   };
 
   // Datos para gráficos
   const occupancyData = [
-    { name: "Completado", population: stats.completedAppointments, color: colors.primary, legendFontColor: "#7F7F7F" },
-    { name: "Cancelado", population: stats.canceledAppointments, color: "#FF6B6B", legendFontColor: "#7F7F7F" },
+    {
+      name: "Completado",
+      population: stats.completedAppointments,
+      color: colors.primary,
+      legendFontColor: "#7F7F7F",
+    },
+    {
+      name: "Cancelado",
+      population: stats.canceledAppointments,
+      color: "#FF6B6B",
+      legendFontColor: "#7F7F7F",
+    },
   ];
 
   const revenueData = {
@@ -221,18 +240,18 @@ export default function AdminDashboardScreen({ navigation }) {
       <ScrollView style={styles.content}>
         {/* Sección de Estadísticas */}
         <Text style={styles.sectionTitle}>Estadísticas de Ocupación</Text>
-        
+
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.totalAppointments}</Text>
             <Text style={styles.statLabel}>Citas totales</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.completedAppointments}</Text>
             <Text style={styles.statLabel}>Completadas</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{stats.canceledAppointments}</Text>
             <Text style={styles.statLabel}>Canceladas</Text>
@@ -276,29 +295,37 @@ export default function AdminDashboardScreen({ navigation }) {
 
         {/* Sección de Reportes */}
         <Text style={styles.sectionTitle}>Reportes</Text>
-        
+
         <View style={styles.filterContainer}>
           <View style={styles.filterRow}>
             <Text style={styles.filterLabel}>Tipo:</Text>
             <Picker
               selectedValue={filter.type}
               style={styles.picker}
-              onValueChange={(itemValue) => setFilter({...filter, type: itemValue})}
+              onValueChange={(itemValue) =>
+                setFilter({ ...filter, type: itemValue })
+              }
             >
               <Picker.Item label="Financieros" value="financial" />
               <Picker.Item label="Demográficos" value="demographic" />
             </Picker>
           </View>
-          
+
           <View style={styles.filterRow}>
             <Text style={styles.filterLabel}>Especialidad:</Text>
             <Picker
               selectedValue={filter.specialty}
               style={styles.picker}
-              onValueChange={(itemValue) => setFilter({...filter, specialty: itemValue})}
+              onValueChange={(itemValue) =>
+                setFilter({ ...filter, specialty: itemValue })
+              }
             >
               {specialties.map((spec, index) => (
-                <Picker.Item key={index} label={spec} value={spec === "Todas" ? "" : spec} />
+                <Picker.Item
+                  key={index}
+                  label={spec}
+                  value={spec === "Todas" ? "" : spec}
+                />
               ))}
             </Picker>
           </View>
@@ -311,20 +338,24 @@ export default function AdminDashboardScreen({ navigation }) {
             <View style={styles.reportCard}>
               <Text style={styles.reportTitle}>{item.title}</Text>
               <Text style={styles.reportValue}>{item.value}</Text>
-              <Text style={[
-                styles.reportChange,
-                item.change.startsWith("+") ? styles.positiveChange : styles.negativeChange
-              ]}>
+              <Text
+                style={[
+                  styles.reportChange,
+                  item.change.startsWith("+")
+                    ? styles.positiveChange
+                    : styles.negativeChange,
+                ]}
+              >
                 {item.change}
               </Text>
             </View>
           )}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
         />
 
         {/* Sección de Asignación de Consultorios */}
         <Text style={styles.sectionTitle}>Asignación de Consultorios</Text>
-        
+
         <FlatList
           data={doctors}
           scrollEnabled={false}
@@ -346,7 +377,9 @@ export default function AdminDashboardScreen({ navigation }) {
                     </Text>
                   </>
                 ) : (
-                  <Text style={styles.doctorConsultorio}>Sin asignación completa</Text>
+                  <Text style={styles.doctorConsultorio}>
+                    Sin asignación completa
+                  </Text>
                 )}
               </View>
               <TouchableOpacity
@@ -357,7 +390,7 @@ export default function AdminDashboardScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           )}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
         />
       </ScrollView>
 
@@ -367,7 +400,7 @@ export default function AdminDashboardScreen({ navigation }) {
           <Text style={styles.modalTitle}>
             Asignar consultorio a {selectedDoctor?.name}
           </Text>
-          
+
           {/* Selector de Sucursal */}
           <Text style={styles.modalLabel}>Sucursal:</Text>
           <Picker
@@ -377,10 +410,14 @@ export default function AdminDashboardScreen({ navigation }) {
           >
             <Picker.Item label="Seleccionar sucursal" value="" />
             {sucursales.map((sucursal, index) => (
-              <Picker.Item key={`sucursal-${index}`} label={sucursal} value={sucursal} />
+              <Picker.Item
+                key={`sucursal-${index}`}
+                label={sucursal}
+                value={sucursal}
+              />
             ))}
           </Picker>
-          
+
           {/* Selector de Consultorio */}
           <Text style={styles.modalLabel}>Consultorio:</Text>
           <Picker
@@ -390,10 +427,14 @@ export default function AdminDashboardScreen({ navigation }) {
           >
             <Picker.Item label="Seleccionar consultorio" value="" />
             {consultorios.map((consultorio, index) => (
-              <Picker.Item key={`consultorio-${index}`} label={consultorio} value={consultorio} />
+              <Picker.Item
+                key={`consultorio-${index}`}
+                label={consultorio}
+                value={consultorio}
+              />
             ))}
           </Picker>
-          
+
           {/* Selector de Horario */}
           <Text style={styles.modalLabel}>Horario:</Text>
           <Picker
@@ -403,19 +444,23 @@ export default function AdminDashboardScreen({ navigation }) {
           >
             <Picker.Item label="Seleccionar horario" value="" />
             {horarios.map((horario, index) => (
-              <Picker.Item key={`horario-${index}`} label={horario} value={horario} />
+              <Picker.Item
+                key={`horario-${index}`}
+                label={horario}
+                value={horario}
+              />
             ))}
           </Picker>
-          
+
           <View style={styles.modalButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setAssignModalVisible(false)}
             >
               <Text style={styles.modalButtonText}>Cancelar</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton]}
               onPress={confirmAssignConsultorio}
             >
@@ -428,7 +473,7 @@ export default function AdminDashboardScreen({ navigation }) {
       {/* Bottom Navigation */}
       <LineaHorizontal />
       <View style={styles.tabBar}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.tabItem}
           onPress={() => navigation.navigate("HomeScreen")}
         >
@@ -445,7 +490,7 @@ export default function AdminDashboardScreen({ navigation }) {
           />
           <Text style={[styles.tabText, styles.activeTabText]}>Dashboard</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.tabItem}
           onPress={() => navigation.navigate("LoginScreen")}
         >
@@ -633,7 +678,7 @@ const styles = StyleSheet.create({
   },
   modalLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 10,
     marginBottom: 5,
   },
