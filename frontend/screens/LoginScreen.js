@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import colors from "../styles/colors";
+import ip from "../utils/myIP";
 import { jwtDecode } from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -20,7 +21,7 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     console.log("Iniciando sesión con:", email);
     try {
-      const response = await fetch("http://192.168.1.12:3000/users/login", {
+      const response = await fetch(`http://${ip}:3000/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,22 +49,45 @@ export default function LoginScreen({ navigation }) {
         );
         await AsyncStorage.setItem("usuarioNombre", usuario.nombre);
         await AsyncStorage.setItem("usuarioApellidoP", usuario.apellidoP);
-        await AsyncStorage.setItem(
-          "usuarioPacienteID",
-          usuario.ID_Paciente.toString()
-        );
         await AsyncStorage.setItem("usuarioApellidoM", usuario.apellidoM);
         await AsyncStorage.setItem("usuarioEmail", usuario.email);
-        await AsyncStorage.setItem("usuarioNombre", usuario.nombre);
 
-        // Navegar a la pantalla principal de paciente
+        if (usuario.ID_Paciente !== null) {
+          await AsyncStorage.setItem(
+            "usuarioPacienteID",
+            usuario.ID_Paciente.toString()
+          );
+        }
+
+        if (usuario.ID_Medico !== null) {
+          await AsyncStorage.setItem(
+            "usuarioMedicoID",
+            usuario.ID_Medico.toString()
+          );
+        }
+
+        if (usuario.ID_Administrador !== null) {
+          await AsyncStorage.setItem(
+            "usuarioAdministradorID",
+            usuario.ID_Administrador.toString()
+          );
+        }
+
+        if (usuario.ID_Asistente !== null) {
+          await AsyncStorage.setItem(
+            "usuarioAsistenteID",
+            usuario.ID_Asistente.toString()
+          );
+        }
+
+        // Navegar a la pantalla principal
         if (usuario.ID_Paciente !== null) {
           navigation.navigate("HomeScreen");
         } else if (usuario.ID_Medico !== null) {
           navigation.navigate("HomeMedico");
         } else if (usuario.ID_Administrador !== null) {
           Alert.alert("Inicio de sesión exitoso", "Administrador");
-          //navigation.navigate('HomeScreen');
+          //navigation.navigate("testPantalla");
         } else if (usuario.ID_Asistente !== null) {
           Alert.alert("Inicio de sesión exitoso", "Asistente");
           //navigation.navigate('HomeScreen');

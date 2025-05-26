@@ -1,16 +1,4 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  Alert,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  SafeAreaView,
-} from "react-native";
+
 import { UserProvider } from "./UserContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";

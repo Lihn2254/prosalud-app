@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import colors from "../styles/colors";
+import ip from "../utils/myIP";
 import { LineaHorizontal } from "../components/linea";
 import { Calendar } from "react-native-calendars";
 import { useState, useEffect } from "react";
@@ -33,7 +34,7 @@ export default function ScheduleAppointmentScreen({ navigation }) {
     const fetchDoctors = async () => {
       try {
         const response = await fetch(
-          "http://192.168.1.12:3000/medical/getDoctors"
+          `http://${ip}:3000/medical/getDoctors`
         );
         if (!response.ok) throw new Error("Error al obtener los doctores");
 

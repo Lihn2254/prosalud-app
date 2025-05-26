@@ -10,6 +10,7 @@ import {
   Linking,
 } from "react-native";
 import colors from "../styles/colors";
+import ip from "../utils/myIP";
 import { Container } from "../components/container";
 import { LineaHorizontal } from "../components/linea";
 import { useContext, useState } from "react";
@@ -36,7 +37,7 @@ export default function HomeScreen({ navigation }) {
         if (!pacienteID) return;
 
         const response = await fetch(
-          `http://192.168.1.12:3000/appointments/getAppointments?patientId=${pacienteID}`
+          `http://${ip}:3000/appointments/getAppointments?patientId=${pacienteID}`
         );
         const data = await response.json();
 

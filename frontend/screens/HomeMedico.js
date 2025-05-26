@@ -8,13 +8,48 @@ import {
   ScrollView,
 } from "react-native";
 import colors from "../styles/colors";
+import ip from "../utils/myIP";
 import { Container } from "../components/container";
 import { LineaHorizontal } from "../components/linea";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { UserContext } from "../UserContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
 
 export default function HomeScreen({ navigation }) {
   const { usuario, setUsuario } = useContext(UserContext);
+  const [appointments, setAppointments] = useState([]);
+
+  useEffect(() => {
+    const fetchCitasMedico = async () => {
+      try {
+        const medicoIDString = await AsyncStorage.getItem(
+          "usuarioMedicoID"
+        );
+        const MedicoID = parseInt(medicoIDString);
+        if (!MedicoID) return;
+
+        const response = await fetch(
+          `http://${ip}:3000/medAppointments/getMedAppointments?medicId=${MedicoID}`
+        );
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setAppointments(data);
+        } else {
+          console.warn("Respuesta inesperada:", data);
+        }
+      } catch (error) {
+        console.error("Error al obtener citas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCitasMedico();
+  }, []);
+
+  /*
   const appointments = [
     {
       id: 1,
@@ -45,6 +80,7 @@ export default function HomeScreen({ navigation }) {
       doctor: "Dra. Ana García López",
     },
   ];
+  */
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -75,16 +111,20 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.appointmentLocation}>
                   {appointment.clinic}
                 </Text>
+                <Text style={styles.appointmentLocation}>
+                  {appointment.paciente}
+                </Text>
                 <Text style={styles.appointmentDoctor}>
-                  {appointment.doctor}
+                  {appointment.consultorio}
                 </Text>
 
+
                 <View style={styles.appointmentActions}>
-                  <TouchableOpacity style={styles.modifyButton}>
-                    <Text style={styles.modifyButtonText}>Modificar</Text>
+                  <TouchableOpacity style={styles.detallesButton}>
+                    <Text style={styles.detallesButtonText}>Ver detalles</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.detailsButton}>
-                    <Text style={styles.detailsButtonText}>Ver detalles</Text>
+                  <TouchableOpacity style={styles.consultarButton}>
+                    <Text style={styles.consultarButtonText}>Iniciar consulta</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -92,9 +132,6 @@ export default function HomeScreen({ navigation }) {
           }
         </Container>
       </ScrollView>
-      <TouchableOpacity style={styles.scheduleButton}>
-        <Text style={styles.scheduleButtonText}>Agendar Nueva Cita</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity style={styles.contactButton}>
         <Image
@@ -202,20 +239,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 10,
   },
-  modifyButton: {
-    padding: 8,
+  detallesButton: {
+    padding: 8,    
   },
-  modifyButtonText: {
+  detallesButtonText: {
     color: colors.primary,
     fontSize: 14,
   },
-  detailsButton: {
+  consultarButton: {
     backgroundColor: "#222",
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 20,
   },
-  detailsButtonText: {
+  consultarButtonText: {
     color: "#fff",
     fontSize: 14,
   },

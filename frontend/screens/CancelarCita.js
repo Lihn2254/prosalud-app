@@ -9,6 +9,7 @@ import {
   TextInput,
 } from "react-native";
 import colors from "../styles/colors";
+import ip from "../utils/myIP";
 import { Container } from "../components/container";
 import { useState } from "react";
 
