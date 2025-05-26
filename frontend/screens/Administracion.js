@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PieChart, BarChart } from "react-native-chart-kit";
 import Modal from "react-native-modal";
 import { Picker } from "@react-native-picker/picker";
+import { Dropdown } from "react-native-element-dropdown";
 import ip from "../utils/myIP";
 
 export default function AdminDashboardScreen({ navigation }) {
@@ -81,6 +82,21 @@ export default function AdminDashboardScreen({ navigation }) {
     "Cardiologia",
     "Dermatologia",
   ];
+
+  const sucursalData = sucursales.map((item, index) => ({
+    label: item,
+    value: item,
+  }));
+
+  const consultorioData = consultorios.map((item, index) => ({
+    label: item,
+    value: item,
+  }));
+
+  const horarioData = horarios.map((item, index) => ({
+    label: item,
+    value: item,
+  }));
 
   useEffect(() => {
     fetchStats();
@@ -394,78 +410,86 @@ export default function AdminDashboardScreen({ navigation }) {
         />
       </ScrollView>
 
-      {/* Modal de Asignación de Consultorio */}
-      <Modal isVisible={assignModalVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>
-            Asignar consultorio a {selectedDoctor?.name}
-          </Text>
+      <Modal
+        visible={assignModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setAssignModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>
+                Asignar consultorio a {selectedDoctor?.name}
+              </Text>
 
-          {/* Selector de Sucursal */}
-          <Text style={styles.modalLabel}>Sucursal:</Text>
-          <Picker
-            selectedValue={selectedSucursal}
-            onValueChange={(itemValue) => setSelectedSucursal(itemValue)}
-            style={styles.modalPicker}
-          >
-            <Picker.Item label="Seleccionar sucursal" value="" />
-            {sucursales.map((sucursal, index) => (
-              <Picker.Item
-                key={`sucursal-${index}`}
-                label={sucursal}
-                value={sucursal}
+              {/* Selector de Sucursal */}
+              <Text style={styles.modalLabel}>Sucursal:</Text>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={sucursalData}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Seleccionar sucursal"
+                value={selectedSucursal}
+                onChange={(item) => {
+                  setSelectedSucursal(item.value);
+                }}
               />
-            ))}
-          </Picker>
 
-          {/* Selector de Consultorio */}
-          <Text style={styles.modalLabel}>Consultorio:</Text>
-          <Picker
-            selectedValue={selectedConsultorio}
-            onValueChange={(itemValue) => setSelectedConsultorio(itemValue)}
-            style={styles.modalPicker}
-          >
-            <Picker.Item label="Seleccionar consultorio" value="" />
-            {consultorios.map((consultorio, index) => (
-              <Picker.Item
-                key={`consultorio-${index}`}
-                label={consultorio}
-                value={consultorio}
+              {/* Selector de Consultorio */}
+              <Text style={styles.modalLabel}>Consultorio:</Text>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={consultorioData}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Seleccionar consultorio"
+                value={selectedConsultorio}
+                onChange={(item) => {
+                  setSelectedConsultorio(item.value);
+                }}
               />
-            ))}
-          </Picker>
 
-          {/* Selector de Horario */}
-          <Text style={styles.modalLabel}>Horario:</Text>
-          <Picker
-            selectedValue={selectedHorario}
-            onValueChange={(itemValue) => setSelectedHorario(itemValue)}
-            style={styles.modalPicker}
-          >
-            <Picker.Item label="Seleccionar horario" value="" />
-            {horarios.map((horario, index) => (
-              <Picker.Item
-                key={`horario-${index}`}
-                label={horario}
-                value={horario}
+              {/* Selector de Horario */}
+              <Text style={styles.modalLabel}>Horario:</Text>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                data={horarioData}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Seleccionar horario"
+                value={selectedHorario}
+                onChange={(item) => {
+                  setSelectedHorario(item.value);
+                }}
               />
-            ))}
-          </Picker>
 
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setAssignModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>Cancelar</Text>
-            </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setAssignModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.modalButton, styles.confirmButton]}
-              onPress={confirmAssignConsultorio}
-            >
-              <Text style={styles.modalButtonText}>Confirmar</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={confirmAssignConsultorio}
+                >
+                  <Text style={styles.modalButtonText}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -726,5 +750,11 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: colors.primary,
     fontWeight: "bold",
+  },
+  modalOverlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.7)", // Change from 0.5 to 0.7 for darker background
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });
