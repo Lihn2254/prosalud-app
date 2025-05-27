@@ -11,65 +11,16 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native"
+import ip from "../utils/myIP";
 import colors from "../styles/colors"
 import { Container } from "../components/container"
 import { LineaHorizontal } from "../components/linea"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 export default function MiExpedienteScreen({ navigation }) {
-  const [userData, setUserData] = useState({
-    nombre: "",
-    apellidoP: "",
-    apellidoM: "",
-    edad: "",
-    genero: "",
-  })
+  const [userData, setUserData] = useState([])
   const [pastAppointments, setPastAppointments] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // Sample past appointments data - replace with actual API call
-  const samplePastAppointments = [
-    {
-      id: 1,
-      date: "Marzo 15, 2025",
-      time: "10:00",
-      clinic: "Clínica - Colinas de San Miguel",
-      doctor: "Dr. Carlos Mendoza",
-      specialty: "Medicina General",
-      status: "Completada",
-      diagnosis: "Revisión general - Todo normal",
-    },
-    {
-      id: 2,
-      date: "Febrero 28, 2025",
-      time: "14:30",
-      clinic: "Clínica - Centro",
-      doctor: "Dra. Ana García López",
-      specialty: "Cardiología",
-      status: "Completada",
-      diagnosis: "Control de presión arterial",
-    },
-    {
-      id: 3,
-      date: "Enero 20, 2025",
-      time: "09:15",
-      clinic: "Clínica - Norte",
-      doctor: "Dr. Javier Lizárraga Moreno",
-      specialty: "Cardiología",
-      status: "Completada",
-      diagnosis: "Electrocardiograma - Resultados normales",
-    },
-    {
-      id: 4,
-      date: "Diciembre 10, 2024",
-      time: "16:00",
-      clinic: "Clínica - Colinas de San Miguel",
-      doctor: "Dra. María Rodríguez",
-      specialty: "Dermatología",
-      status: "Completada",
-      diagnosis: "Revisión de lunares - Sin anomalías",
-    },
-  ]
 
   useEffect(() => {
     loadUserData()
@@ -78,35 +29,77 @@ export default function MiExpedienteScreen({ navigation }) {
 
   const loadUserData = async () => {
     try {
-      const nombre = (await AsyncStorage.getItem("usuarioNombre")) || ""
-      const apellidoP = (await AsyncStorage.getItem("usuarioApellidoP")) || ""
-      const apellidoM = (await AsyncStorage.getItem("usuarioApellidoM")) || ""
+      const pacienteIDString = await AsyncStorage.getItem(
+        "usuarioPacienteID"
+      );
+      const patientId = parseInt(pacienteIDString);
+      if (!patientId) return;
+      console.log("Antes de fetch: ", patientId);
 
-      // Calculate age from birth date (you might need to store birth date)
-      // For now, using a placeholder age
-      const edad = "49" // This should be calculated from actual birth date
-      const genero = "Hombre" // This should come from user data
-
-      setUserData({
-        nombre,
-        apellidoP,
-        apellidoM,
-        edad,
-        genero,
+      const response = await fetch(`http://${ip}:3000/users/getInfoUsuario?patientId=${patientId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
       })
+
+      console.log("Después de fetch: ", patientId);
+
+      if (!response.ok) {
+        throw new Error("Error al obtener la información del usuario")
+      }
+
+      const data = await response.json()
+      console.log(data);
+
+      if (Array.isArray(data)) {
+        setUserData(data[0]);
+      } else {
+        setUserData({});
+        console.warn("Respuesta inesperada:", data);
+      }
+
+      setLoading(false)
     } catch (error) {
-      console.error("Error loading user data:", error)
+      console.error("Error al cargar la información del usuario:", error)
+      setLoading(false)
     }
   }
 
   const loadPastAppointments = async () => {
     try {
-      // Here you would make an API call to get past appointments
-      // For now, using sample data
-      setPastAppointments(samplePastAppointments)
+      const pacienteIDString = await AsyncStorage.getItem(
+        "usuarioPacienteID"
+      );
+      const patientId = parseInt(pacienteIDString);
+      if (!patientId) return;
+      console.log("Antes de fetch: ", patientId);
+
+      const response = await fetch(`http://${ip}:3000/users/getExpediente?patientId=${patientId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+
+      console.log("Después de fetch: ", patientId);
+
+      if (!response.ok) {
+        throw new Error("Error al obtener el expediente")
+      }
+
+      const data = await response.json()
+      console.log(data);
+
+      if (Array.isArray(data)) {
+        setPastAppointments(data || []);
+      } else {
+        console.warn("Respuesta inesperada:", data);
+      }
+
       setLoading(false)
     } catch (error) {
-      console.error("Error loading past appointments:", error)
+      console.error("Error al cargar el expediente:", error)
       setLoading(false)
     }
   }
@@ -143,7 +136,7 @@ export default function MiExpedienteScreen({ navigation }) {
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <Image source={require("../assets/ProSalud_logo.jpg")} style={styles.logo} />
-          <Text style={styles.logoText}>ProSalud</Text>
+          <Text style={styles.logoText}>Expediente médico</Text>
         </View>
       </View>
 
@@ -151,52 +144,50 @@ export default function MiExpedienteScreen({ navigation }) {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* User Profile Section */}
-        <Container style={styles.profileContainer}>
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <Image
-                source={require("../assets/ProSalud_logo.jpg")} // Replace with actual user photo
-                style={styles.avatar}
-              />
-            </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{getFullName()}</Text>
-              <Text style={styles.userDetails}>
-                {userData.edad} años - {userData.genero}
-              </Text>
-            </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{userData.nombre}</Text>
+            <Text style={styles.userDetails}>
+              {userData.edad} años - {userData.genero}
+            </Text>
+            <Text style={styles.userDetails}>Antecedentes - {userData.antecedentes} </Text>
+            <Text style={styles.userDetails}>Alergias - {userData.alergias} </Text>
+            <Text style={styles.userDetails}>Enfermedades - {userData.enfermedades} </Text>
+            <Text style={styles.userDetails}>Fecha de alta - {userData.fecha_alta} </Text>
           </View>
-        </Container>
-
+        <LineaHorizontal />
         {/* Past Appointments Section */}
         <Container style={styles.appointmentsContainer}>
-          <Text style={styles.sectionTitle}>Historial de Citas</Text>
-          <LineaHorizontal />
-
           {pastAppointments.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>No hay citas anteriores</Text>
             </View>
           ) : (
             pastAppointments.map((appointment) => (
-              <View key={appointment.id} style={styles.appointmentCard}>
+              <View key={appointment.folioConsulta} style={styles.appointmentCard}>
                 <View style={styles.appointmentHeader}>
                   <Text style={styles.appointmentDate}>
-                    {appointment.date} | {appointment.time}
+                    {appointment.fecha} | {appointment.hora}
                   </Text>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(appointment.status) }]}>
-                    <Text style={styles.statusText}>{appointment.status}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: "green" }]}>
+                    <Text style={styles.statusText}>{appointment.estado}</Text>
                   </View>
                 </View>
 
-                <Text style={styles.appointmentSpecialty}>{appointment.specialty}</Text>
-                <Text style={styles.appointmentDoctor}>{appointment.doctor}</Text>
-                <Text style={styles.appointmentLocation}>{appointment.clinic}</Text>
+                <Text style={styles.appointmentSpecialty}>{appointment.especialidad}</Text>
+                <Text style={styles.appointmentDoctor}>{appointment.nombreMedico}</Text>
+                <Text style={styles.appointmentLocation}>{appointment.sucursal}</Text>
 
-                {appointment.diagnosis && (
+                {appointment.diagnostico && (
                   <View style={styles.diagnosisContainer}>
                     <Text style={styles.diagnosisLabel}>Diagnóstico:</Text>
-                    <Text style={styles.diagnosisText}>{appointment.diagnosis}</Text>
+                    <Text style={styles.diagnosisText}>{appointment.diagnostico}</Text>
+                  </View>
+                )}
+
+                {appointment.receta && (
+                  <View style={styles.diagnosisContainer}>
+                    <Text style={styles.diagnosisLabel}>Receta:</Text>
+                    <Text style={styles.diagnosisText}>{appointment.receta}</Text>
                   </View>
                 )}
 
@@ -234,7 +225,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    marginTop: 50,
   },
   logoContainer: {
     flexDirection: "row",
@@ -246,7 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     marginLeft: 10,
     color: colors.text,
@@ -267,11 +258,10 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 20,
-    marginVertical: 10,
-    borderWidth: 1,
+    borderRadius: 1,
+    borderWidth: 0,
     borderColor: colors.primary,
+    elevation: 0,
   },
   profileHeader: {
     flexDirection: "row",
@@ -288,6 +278,8 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+    marginHorizontal: 10,
+    paddingVertical: 10,
   },
   userName: {
     fontSize: 18,
@@ -301,11 +293,10 @@ const styles = StyleSheet.create({
   },
   appointmentsContainer: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    padding: 1,
+    marginVertical: 1,
+    borderWidth: 0,
+    elevation: 0,
   },
   sectionTitle: {
     fontSize: 18,
@@ -404,6 +395,7 @@ const styles = StyleSheet.create({
     borderTopColor: "#eee",
     paddingVertical: 10,
     backgroundColor: colors.white,
+    marginBottom: 10,
   },
   tabItem: {
     alignItems: "center",
