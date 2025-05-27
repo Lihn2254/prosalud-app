@@ -99,13 +99,13 @@ export default function HomeScreen({ navigation }) {
     {
       id: 1,
       name: "Clínica Norte",
-      phone: "+52 81 1234-5678",
+      phone: "+52 667 313 4981",
       address: "Av. Constitución Norte #123",
     },
     {
       id: 2,
       name: "Clínica Sur",
-      phone: "+52 81 2345-6789",
+      phone: "+52 667 409 1095",
       address: "Blvd. Díaz Ordaz Sur #456",
     },
     {
