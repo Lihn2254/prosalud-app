@@ -64,7 +64,7 @@ router.get("/getAppointments", (req, res) => {
       JOIN Medico M ON C.ID_Medico = M.ID_Medico
       JOIN Usuario U ON M.ID_Usuario = U.ID_Usuario
       WHERE C.ID_Paciente = @patientId
-      AND C.estado != 'cancelada'
+      AND C.estado = 'pendiente'
       ORDER BY C.fecha DESC
     `;
 
